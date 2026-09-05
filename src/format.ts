@@ -91,3 +91,19 @@ export function dayAt(ref: Date, daysAgo: number): Date {
 export function dayOfMonth(d: Date): number {
   return Number(new Intl.DateTimeFormat("en", { timeZone: TZ, day: "numeric" }).format(d));
 }
+
+/** "2 min", "1 h 08", "2 j 03 h" — human duration between two instants. */
+export function duration(start: string, end: string | null, now = new Date()): string {
+  const ms = (end ? Date.parse(end) : now.getTime()) - Date.parse(start);
+  const mins = Math.max(1, Math.round(ms / 60_000));
+  if (mins < 60) return `${mins} min`;
+  const h = Math.floor(mins / 60);
+  if (h < 48) return `${h} h ${String(mins % 60).padStart(2, "0")}`;
+  return `${Math.floor(h / 24)} j ${String(h % 24).padStart(2, "0")} h`;
+}
+
+export const SEVERITY_LABEL: Record<string, string> = {
+  minor: "Mineur",
+  major: "Majeur",
+  critical: "Critique",
+};

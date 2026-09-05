@@ -154,14 +154,48 @@ button:focus-visible {
 
 /* The one loud element: the dot in front of the headline carries the overall state. */
 .hero-dot {
+  position: relative;
   display: inline-block;
   width: 0.55em;
   height: 0.55em;
   border-radius: 50%;
   background: var(--c, var(--nodata));
   margin-right: 0.35em;
-  vertical-align: 0.12em;
-  box-shadow: 0 0 0 0.18em color-mix(in srgb, var(--c, var(--nodata)) 25%, transparent);
+  vertical-align: 0.075em;
+  box-shadow: 0 0 0 0.18em color-mix(in srgb, var(--c, var(--nodata)) 18%, transparent);
+}
+
+/* Live signal: a ring radiates from the dot, faster when something is wrong. */
+.hero-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--c, var(--nodata));
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-dot {
+    animation: hero-breathe var(--pulse, 2.8s) ease-in-out infinite;
+  }
+  .hero-dot::after {
+    animation: hero-ping var(--pulse, 2.8s) cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  .hero-dot.degraded { --pulse: 1.6s; }
+  .hero-dot.outage { --pulse: 1.1s; }
+  .hero-dot.nodata { animation: none; }
+  .hero-dot.nodata::after { animation: none; }
+}
+
+@keyframes hero-ping {
+  0% { transform: scale(1); opacity: 0.5; }
+  75%, 100% { transform: scale(3); opacity: 0; }
+}
+
+@keyframes hero-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
 }
 
 /* ---------- hero ---------- */
@@ -400,75 +434,110 @@ h3.group {
   border-radius: 2px;
 }
 
-/* ---------- incidents & maintenance ---------- */
+/* ---------- incidents & maintenance: cards like uptimepage ---------- */
 
 .incident-list {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: grid;
+  gap: 0.75rem;
 }
 
 .incident {
-  display: grid;
-  grid-template-columns: minmax(9rem, 14rem) 1fr;
-  gap: 0.25rem 1.25rem;
-  padding: 0.9rem 0;
-  border-top: 1px solid var(--rule);
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 0.9rem 1.1rem 0.95rem 1.25rem;
+  overflow: hidden;
 }
 
-.incident:first-child {
-  border-top: 0;
-}
-
-.incident .when {
-  display: flex;
-  flex-direction: column;
-  color: var(--muted);
-  font-size: 0.9375rem;
-  line-height: 1.4;
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-}
-
-.incident .when .d {
-  color: var(--ink);
-}
-
-.incident .what {
-  min-width: 0;
-  border-left: 3px solid var(--c, var(--rule));
-  padding-left: 0.9rem;
+.incident::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--c, var(--rule));
 }
 
 .sev-degraded { --c: var(--degraded); }
 .sev-outage { --c: var(--outage); }
 .sev-maintenance { --c: var(--maintenance); }
 
+.incident-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.6rem;
+}
+
 .incident .title {
   color: var(--ink);
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 1.0625rem;
+  text-decoration: none;
+}
+
+.incident a.title:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 .incident.open .title {
   font-size: 1.125rem;
 }
 
-.incident .update {
-  margin: 0.25rem 0 0;
-  color: var(--muted);
-  font-size: 0.9375rem;
+.pill {
+  display: inline-flex;
+  align-items: center;
+  height: 1.35rem;
+  padding: 0 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--pill-c, var(--rule));
+  color: var(--pill-c, var(--muted));
+  background: color-mix(in srgb, var(--pill-c, var(--muted)) 10%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
-.incident .phase {
+.pill-sev.sev-minor { --pill-c: var(--degraded); }
+.pill-sev.sev-major,
+.pill-sev.sev-critical { --pill-c: var(--outage); }
+
+.pill-phase { --pill-c: var(--muted); }
+.pill-phase.phase-resolved { --pill-c: var(--ok); color: color-mix(in srgb, var(--ok) 60%, var(--ink)); }
+.pill-phase.phase-investigating,
+.pill-phase.phase-identified { --pill-c: var(--outage); }
+.pill-phase.phase-monitoring { --pill-c: var(--degraded); }
+.pill-phase.phase-maintenance { --pill-c: var(--maintenance); }
+
+.incident-meta {
+  margin: 0.4rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.45rem;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8125rem;
+}
+
+.incident-meta .sep {
+  opacity: 0.6;
+}
+
+.incident-meta .dur {
   color: var(--ink);
 }
 
-.incident .phase::after {
-  content: " — ";
-}
-
-.incident .at {
-  white-space: nowrap;
+.incident-msg {
+  margin: 0.55rem 0 0;
+  color: var(--ink);
+  font-size: 0.9375rem;
+  line-height: 1.45;
 }
 
 .active h2 {
@@ -499,8 +568,7 @@ h3.group {
 /* ---------- small screens ---------- */
 
 @media (max-width: 40rem) {
-  .row,
-  .incident {
+  .row {
     grid-template-columns: 1fr auto;
   }
 
@@ -525,10 +593,6 @@ h3.group {
     grid-column: 2;
   }
 
-  .incident .what {
-    grid-column: 1 / -1;
-  }
-
   .row.component {
     padding: 0.75rem 0;
   }
@@ -543,6 +607,15 @@ h3.group {
   }
 
   .isc-footer__gh span {
+    display: none;
+  }
+
+  .incident-meta {
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .incident-meta .sep {
     display: none;
   }
 }

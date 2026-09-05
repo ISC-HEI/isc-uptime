@@ -1,16 +1,17 @@
 import type { Component, Group, Incident, Maintenance, StatusPayload } from "./types";
 import {
   PHASE_LABEL,
+  SEVERITY_LABEL,
   STATE_LABEL,
   day,
   dayAt,
   dayOfMonth,
   dayShort,
   dayTime,
+  duration,
   monthShort,
   overallHeadline,
   snapshotStamp,
-  span,
   time,
   visualState,
 } from "./format";
@@ -221,25 +222,29 @@ function renderActive(list: Incident[], base: string): string {
 }
 
 function renderIncident(i: Incident, base: string, open = false): string {
-  const last = i.updates.at(-1);
-  const sev = visualState(i.severity === "minor" ? "degraded" : "outage");
+  const updates = [...i.updates].sort((a, b) => Date.parse(a.posted_at) - Date.parse(b.posted_at));
+  const last = updates.at(-1);
+  const sev = i.severity === "minor" ? "degraded" : "outage";
+  const phase = i.ended_at && !open ? "resolved" : i.status_phase;
+  const end = i.ended_at ? (sameDayIso(i.started_at, i.ended_at) ? time(i.ended_at) : dayTime(i.ended_at)) : null;
   return `
     <li class="incident ${open ? "open" : ""} sev-${sev}">
-      <div class="when">
-        <span class="d">${esc(dayShort(i.started_at))}</span>
-        <span class="t">${esc(span(i.started_at, i.ended_at))}</span>
-      </div>
-      <div class="what">
+      <div class="incident-head">
         <a class="title" href="${esc(base)}/status/incidents/${esc(i.id)}">${esc(i.title)}</a>
-        ${
-          last
-            ? `<p class="update"><span class="phase">${esc(PHASE_LABEL[last.phase] ?? last.phase)}</span>
-               ${esc(last.message)} <span class="at">(${esc(time(last.posted_at))})</span></p>`
-            : ""
-        }
+        <span class="pill pill-sev sev-${esc(i.severity)}">${esc(SEVERITY_LABEL[i.severity] ?? i.severity)}</span>
+        <span class="pill pill-phase phase-${esc(phase)}">${esc(PHASE_LABEL[phase] ?? phase)}</span>
       </div>
+      <p class="incident-meta">
+        ${i.component_name ? `<span>${esc(i.component_name)}</span><span class="sep">·</span>` : ""}
+        <span class="range">${esc(dayTime(i.started_at))}${end ? ` → ${esc(end)}` : ""}</span>
+        <span class="sep">·</span>
+        <span class="dur">${esc(duration(i.started_at, i.ended_at))}${i.ended_at ? " (résolu)" : ", en cours"}</span>
+      </p>
+      ${last ? `<p class="incident-msg">${esc(last.message)}</p>` : ""}
     </li>`;
 }
+
+const sameDayIso = (a: string, b: string) => day(a) === day(b);
 
 /* ---------- maintenance ---------- */
 
@@ -253,15 +258,17 @@ function renderMaintenanceBlock(title: string, list: Maintenance[]): string {
           .map(
             (m) => `
           <li class="incident sev-maintenance">
-            <div class="when">
-              <span class="d">${esc(dayShort(m.starts_at))}</span>
-              <span class="t">${esc(time(m.starts_at))} → ${esc(sameDay(m) ? time(m.ends_at) : dayTime(m.ends_at))}</span>
-            </div>
-            <div class="what">
+            <div class="incident-head">
               <span class="title">${esc(m.title)}</span>
-              ${m.description ? `<p class="update">${esc(m.description)}</p>` : ""}
-              ${m.component_names?.length ? `<p class="update">Concerne : ${esc(m.component_names.join(", "))}</p>` : ""}
+              <span class="pill pill-phase phase-maintenance">Maintenance</span>
             </div>
+            <p class="incident-meta">
+              ${m.component_names?.length ? `<span>${esc(m.component_names.join(", "))}</span><span class="sep">·</span>` : ""}
+              <span class="range">${esc(dayTime(m.starts_at))} → ${esc(sameDay(m) ? time(m.ends_at) : dayTime(m.ends_at))}</span>
+              <span class="sep">·</span>
+              <span class="dur">${esc(duration(m.starts_at, m.ends_at))}</span>
+            </p>
+            ${m.description ? `<p class="incident-msg">${esc(m.description)}</p>` : ""}
           </li>`,
           )
           .join("")}
