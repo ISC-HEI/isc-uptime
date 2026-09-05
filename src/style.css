@@ -1,0 +1,554 @@
+/* ISC status page — app styles on top of the vendored @isc-hei/design tokens
+   (src/isc-design.css). Status colours are derived from the five petals of the
+   ISC symbol: teal (embedded systems) = operational, rose (security) = outage,
+   yellow (data) = degraded, purple (networks) = maintenance. The accent is the
+   ISC magenta, as everywhere in the fleet. */
+
+:root {
+  --bg: var(--isc-bg-page);
+  --surface: var(--isc-bg-white);
+  --ink: var(--isc-text-primary);
+  --muted: var(--isc-text-muted);
+  --rule: var(--isc-border-default);
+  --link: #ec008b;
+
+  --ok: #98c7bf;
+  --degraded: #c9a227;
+  --outage: #c4506c;
+  --maintenance: #a890c0;
+  --nodata: #e6ebed;
+
+  --gutter: var(--isc-page-padding-x);
+  --font-body: var(--isc-font-sans);
+  --font-mono: var(--isc-font-mono);
+}
+
+:root[data-theme="dark"] {
+  --link: #f04ea3;
+  --ok: #7fb8ae;
+  --degraded: #d9b53f;
+  --outage: #d2657f;
+  --maintenance: #a890c0;
+  --nodata: #24313a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --link: #f04ea3;
+    --ok: #7fb8ae;
+    --degraded: #d9b53f;
+    --outage: #d2657f;
+    --maintenance: #a890c0;
+    --nodata: #24313a;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light dark;
+  -webkit-text-size-adjust: 100%;
+}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+a {
+  color: var(--link);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+button {
+  font-family: inherit;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- page shell (isc-page frame) ---------- */
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+#app > .isc-footer {
+  margin-top: auto;
+}
+
+.content {
+  padding: 0 var(--gutter) 3rem;
+}
+
+/* ---------- header extras ---------- */
+
+/* Surtitle casing as in isc-tbs: ALL-CAPS only on the hub crumb. */
+.isc-header__surtitle { text-transform: none; }
+.isc-header__surtitle a { text-transform: uppercase; }
+
+/* Meta controls: 32 px pills, no glass (mirrors the hub's MetaStrip). */
+.topbar__meta-fab {
+  width: auto;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 999px;
+  padding: 0 10px;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  text-decoration: none;
+}
+.topbar__meta-fab:hover { transform: none; box-shadow: none; }
+
+:root[data-theme="dark"] .isc-fab.topbar__meta-fab { border-color: rgba(255, 255, 255, 0.18); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .isc-fab.topbar__meta-fab { border-color: rgba(255, 255, 255, 0.18); }
+}
+
+.topbar__theme-fab .icon-moon { display: none; }
+:root[data-theme="dark"] .topbar__theme-fab .icon-sun { display: none; }
+:root[data-theme="dark"] .topbar__theme-fab .icon-moon { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .topbar__theme-fab .icon-sun { display: none; }
+  :root:not([data-theme="light"]) .topbar__theme-fab .icon-moon { display: block; }
+}
+
+/* The one loud element: the colour strip under the header carries the overall state. */
+.state-band {
+  background: var(--c, var(--nodata));
+  transition: background-color 0.35s ease;
+}
+
+/* ---------- hero ---------- */
+
+.hero {
+  padding: 3.25rem 0 2.25rem;
+  border-top: 0;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.hero .stamp {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+}
+
+/* ---------- sections ---------- */
+
+section {
+  padding: 1.75rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+h2 {
+  margin: 0 0 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 550;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  color: var(--muted);
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.section-head h2 {
+  margin: 0 0 1.25rem;
+}
+
+.uptime-overall {
+  margin: 0 0 1.25rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+  cursor: default;
+}
+
+.uptime-overall .pct {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+h3.group {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.empty,
+.more {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* ---------- services: shared axis + strips + uptime ---------- */
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(9rem, 14rem) 1fr 4.75rem;
+  gap: 0 1.25rem;
+  align-items: center;
+}
+
+.row.component {
+  padding: 0.5rem 0;
+}
+
+.axis-track {
+  grid-column: 2;
+  position: relative;
+  height: 1.25rem;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 0.25rem;
+}
+
+.axis-pct {
+  grid-column: 3;
+  align-self: end;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-bottom: 0.3rem;
+}
+
+.tick {
+  position: absolute;
+  bottom: 0.2rem;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--muted);
+}
+
+.tick::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -0.45rem;
+  width: 1px;
+  height: 0.4rem;
+  background: var(--rule);
+}
+
+.who {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desc {
+  display: none;
+}
+
+.dot {
+  flex: none;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--nodata);
+  transform: translateY(-1px);
+}
+
+.strip {
+  display: block;
+  width: 100%;
+  height: 28px;
+}
+
+.strip rect {
+  fill: var(--nodata);
+  transition: opacity 0.12s;
+}
+
+.strip rect:hover {
+  opacity: 0.7;
+}
+
+.ok { --c: var(--ok); }
+.degraded { --c: var(--degraded); }
+.outage { --c: var(--outage); }
+.maintenance { --c: var(--maintenance); }
+.nodata { --c: var(--nodata); }
+
+.dot,
+.sw,
+.strip rect {
+  background: var(--c);
+  fill: var(--c);
+}
+
+.uptime {
+  justify-self: end;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.875rem;
+  color: var(--ink);
+  cursor: default;
+  white-space: nowrap;
+}
+
+.uptime.degraded { color: var(--degraded); }
+.uptime.outage { color: var(--outage); }
+.uptime.nodata { color: var(--muted); }
+
+/* Floating popover for the strip cells (same look as [data-tooltip]). */
+.strip-tip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: rgba(40, 48, 64, 0.88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #f0f1f3;
+  padding: 6px 12px;
+  font-size: 0.833rem;
+  font-family: var(--font-body);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  white-space: nowrap;
+  z-index: 300;
+  pointer-events: none;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  margin: 1.25rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.legend .key {
+  white-space: nowrap;
+}
+
+.legend .sw {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-right: 0.4rem;
+  vertical-align: -1px;
+  border-radius: 2px;
+}
+
+/* ---------- incidents & maintenance ---------- */
+
+.incident-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.incident {
+  display: grid;
+  grid-template-columns: minmax(9rem, 14rem) 1fr;
+  gap: 0.25rem 1.25rem;
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.incident:first-child {
+  border-top: 0;
+}
+
+.incident .when {
+  display: flex;
+  flex-direction: column;
+  color: var(--muted);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.incident .when .d {
+  color: var(--ink);
+}
+
+.incident .what {
+  min-width: 0;
+  border-left: 3px solid var(--c, var(--rule));
+  padding-left: 0.9rem;
+}
+
+.sev-degraded { --c: var(--degraded); }
+.sev-outage { --c: var(--outage); }
+.sev-maintenance { --c: var(--maintenance); }
+
+.incident .title {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.incident.open .title {
+  font-size: 1.125rem;
+}
+
+.incident .update {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.incident .phase {
+  color: var(--ink);
+}
+
+.incident .phase::after {
+  content: " — ";
+}
+
+.incident .at {
+  white-space: nowrap;
+}
+
+.active h2 {
+  color: var(--outage);
+}
+
+/* ---------- footer extras (on top of .isc-footer) ---------- */
+
+.isc-footer__note {
+  grid-area: contact;
+  font-size: 0.61rem;
+}
+
+.isc-footer__note a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.isc-footer__gh {
+  grid-area: logo;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* ---------- small screens ---------- */
+
+@media (max-width: 40rem) {
+  .row,
+  .incident {
+    grid-template-columns: 1fr auto;
+  }
+
+  .row .who {
+    grid-column: 1;
+  }
+
+  .row .uptime {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .row .strip {
+    grid-column: 1 / -1;
+  }
+
+  .axis-track {
+    grid-column: 1;
+  }
+
+  .axis-pct {
+    grid-column: 2;
+  }
+
+  .incident .what {
+    grid-column: 1 / -1;
+  }
+
+  .row.component {
+    padding: 0.75rem 0;
+  }
+
+  .strip {
+    margin-top: 0.4rem;
+    height: 22px;
+  }
+
+  .hero {
+    padding: 2.5rem 0 2rem;
+  }
+
+  .isc-footer__gh span {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero h1 {
+    animation: settle 480ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  @keyframes settle {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}

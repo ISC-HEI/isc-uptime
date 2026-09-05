@@ -1,0 +1,358 @@
+/* ─────────────────────────────────────────────────────────────
+   Vendored subset of @isc-hei/design 0.2.2 (isc-hub/packages/design).
+   This app is vanilla TS, so it cannot consume the Vue components; it wears
+   the look by vendoring the tokens + the CSS of the ported components
+   (ISCHeader, Footer, ColorStrip, .isc-fab, [data-tooltip]). Class names are
+   kept verbatim so the header is pixel-identical to the Vue consumers.
+   Snapshot: re-vendor by hand when the package changes upstream.
+   The package's body/font reset is deliberately NOT vendored (style.css owns it).
+   ────────────────────────────────────────────────────────────── */
+
+:root {
+  --isc-font-sans: "DM Sans Variable", "DM Sans", system-ui, -apple-system, sans-serif;
+  --isc-font-heading: var(--isc-font-sans);
+  --isc-font-mono: "Fira Code Variable", "Fira Code", ui-monospace, monospace;
+
+  --isc-page-padding-x: 28px;
+  --isc-max-width: 1080px;
+
+  --isc-text-primary: #0a1a2f;
+  --isc-text-secondary: #555;
+  --isc-text-muted: #888;
+  --isc-text-disabled: #bbb;
+
+  --isc-bg-page: #fcfbf8;
+  --isc-bg-white: #ffffff;
+  --isc-bg-secondary: #fbfaf7;
+  --isc-bg-meta: #f5f3ec;
+
+  --isc-border-default: #d1cfc6;
+  --isc-border-strong: #e5e3da;
+
+  --isc-glass: rgba(255, 255, 255, 0.72);
+  --isc-hei: #dc0069;
+}
+
+:root[data-theme="dark"] {
+  --isc-text-primary: #f3f4f6;
+  --isc-text-secondary: #a8acb3;
+  --isc-text-muted: #8e949e;
+  --isc-text-disabled: #3a3a40;
+
+  --isc-bg-page: #0e0e10;
+  --isc-bg-white: #16161a;
+  --isc-bg-secondary: #1a1a1d;
+  --isc-bg-meta: #0e0e10;
+
+  --isc-border-default: #2a2a2e;
+  --isc-border-strong: #3a3a40;
+
+  --isc-glass: rgba(22, 22, 26, 0.72);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --isc-text-primary: #f3f4f6;
+    --isc-text-secondary: #a8acb3;
+    --isc-text-muted: #8e949e;
+    --isc-text-disabled: #3a3a40;
+
+    --isc-bg-page: #0e0e10;
+    --isc-bg-white: #16161a;
+    --isc-bg-secondary: #1a1a1d;
+    --isc-bg-meta: #0e0e10;
+
+    --isc-border-default: #2a2a2e;
+    --isc-border-strong: #3a3a40;
+
+    --isc-glass: rgba(22, 22, 26, 0.72);
+  }
+}
+
+/* ─── Mono uppercase label ─── */
+.isc-mono-label {
+  font-family: var(--isc-font-mono);
+  text-transform: uppercase;
+  margin-top: var(--isc-mono-nudge, 2px);
+}
+
+/* ─── Page shell ─── */
+.isc-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.isc-page__frame {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--isc-bg-white);
+  border-left: 0.5px solid var(--isc-border-default);
+  border-right: 0.5px solid var(--isc-border-default);
+  max-width: var(--isc-max-width);
+  width: 100%;
+  margin: 0 auto;
+}
+
+.isc-page__frame > .isc-footer { margin-top: auto; }
+
+/* ─── FAB ─── */
+.isc-fab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--isc-glass);
+  border: 1px solid var(--isc-border-default);
+  color: var(--isc-text-primary);
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  transition: background 0.3s, transform 0.2s, box-shadow 0.3s, border-color 0.2s;
+  flex-shrink: 0;
+}
+.isc-fab:hover { transform: scale(1.1); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14); border-color: var(--isc-border-strong); }
+.isc-fab:active { transform: scale(0.95); }
+
+/* ─── Tooltips ─── */
+[data-tooltip] { position: relative; }
+
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(40, 48, 64, 0.88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #f0f1f3;
+  padding: 6px 12px;
+  font-size: 0.833rem;
+  font-family: var(--isc-font-sans);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  white-space: nowrap;
+  z-index: 300;
+  pointer-events: none;
+  animation: isc-tooltip-in 0.18s ease 0.35s both;
+}
+
+[data-tooltip][data-tooltip-pos="top"]:hover::after,
+[data-tooltip][data-tooltip-pos="top"]:focus-visible::after {
+  top: auto;
+  bottom: calc(100% + 6px);
+  animation: isc-tooltip-in-up 0.18s ease 0.35s both;
+}
+
+@keyframes isc-tooltip-in    { from { opacity: 0; transform: translate(-50%, -4px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes isc-tooltip-in-up { from { opacity: 0; transform: translate(-50%, 4px); }  to { opacity: 1; transform: translate(-50%, 0); } }
+
+/* ─── ISCHeader (ported from components/ISCHeader.vue) ─── */
+.isc-header {
+  background: var(--isc-bg-white);
+  border-bottom: 1px solid var(--isc-border-default);
+}
+
+.isc-header__main { display: flex; }
+
+.isc-header__bar {
+  width: 8px;
+  flex-shrink: 0;
+  transition: background-color 0.35s ease;
+}
+
+.isc-header__inner {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 14px var(--isc-page-padding-x);
+  gap: 22px;
+}
+
+.isc-header__brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.isc-header__full-logo {
+  height: 60px;
+  width: auto;
+  margin-left: -6px;
+}
+
+.isc-header__full-logo--dark { display: none; }
+:root[data-theme="dark"] .isc-header__full-logo--light { display: none; }
+:root[data-theme="dark"] .isc-header__full-logo--dark  { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .isc-header__full-logo--light { display: none; }
+  :root:not([data-theme="light"]) .isc-header__full-logo--dark  { display: block; }
+}
+
+.isc-header__divider {
+  width: 1px;
+  height: 56px;
+  background: var(--isc-border-strong);
+}
+
+.isc-header__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.isc-header__surtitle {
+  font-size: 0.7rem;
+  letter-spacing: 1.1px;
+  font-weight: 550;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.35s ease;
+}
+.isc-header__surtitle a { color: inherit; text-decoration: none; }
+.isc-header__surtitle a:hover { text-decoration: underline; text-underline-offset: 2px; }
+.isc-header__surtitle-sep { opacity: 0.45; margin: 0 3px; }
+
+.isc-header__title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--isc-text-primary);
+  letter-spacing: -0.4px;
+  line-height: 1.15;
+  margin: 0;
+  transition: color 0.35s ease;
+}
+
+.isc-header__meta {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.694rem;
+  color: var(--isc-text-muted);
+  font-family: var(--isc-font-mono);
+}
+
+@media (max-width: 640px) {
+  .isc-header__bar { width: 6px; }
+  .isc-header__inner { flex-wrap: wrap; padding: 12px 16px; gap: 14px; }
+  .isc-header__divider { display: none; }
+  .isc-header__brand { flex: 0 0 100%; justify-content: center; }
+  .isc-header__title { font-size: 1.056rem; }
+}
+
+/* ─── ColorStrip (static variant of components/ColorStrip.vue) ─── */
+.isc-color-strip { height: 6px; }
+@media (max-width: 540px) { .isc-color-strip { height: 5px; } }
+
+/* ─── Footer (ported from components/Footer.vue) ─── */
+.isc-footer {
+  border-top: 1px solid var(--isc-border-default);
+  background: var(--isc-bg-secondary);
+  padding: 12px var(--isc-page-padding-x);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas: "contact credit logo";
+  align-items: center;
+  font-family: var(--isc-font-mono);
+  font-size: 0.61rem;
+  color: var(--isc-text-muted);
+  gap: 0 16px;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+.isc-footer a {
+  color: var(--isc-text-muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.isc-footer a:hover { color: var(--isc-text-primary); }
+
+.isc-footer__credit {
+  grid-area: credit;
+  font-size: 0.5rem;
+  color: var(--isc-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.isc-footer__heart {
+  display: inline-flex;
+  align-items: center;
+  color: var(--isc-hei);
+  vertical-align: -0.15em;
+  margin: 0 4px;
+  cursor: pointer;
+  transform-origin: center;
+  will-change: transform;
+  backface-visibility: hidden;
+  animation: isc-heart-pulse 1.2s ease-in-out infinite;
+}
+
+.isc-footer__heart-icon {
+  display: block;
+  width: 0.78rem;
+  height: 0.78rem;
+}
+
+@keyframes isc-heart-pulse {
+  0%, 100% { transform: scale(0.77); }
+  50%      { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .isc-footer__heart { animation: none; transform: scale(0.85); }
+}
+
+.isc-footer__contact {
+  grid-area: contact;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--isc-bg-white);
+  border: 1px solid var(--isc-border-default);
+  border-radius: 999px;
+  height: 32px;
+  padding: 0 14px;
+  font-family: var(--isc-font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--isc-text-secondary);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.isc-footer__contact:hover { color: var(--isc-text-primary); border-color: var(--isc-text-muted); }
+
+:root[data-theme="dark"] .isc-footer__contact { border-color: rgba(255, 255, 255, 0.18); }
+:root[data-theme="dark"] .isc-footer__contact:hover { border-color: rgba(255, 255, 255, 0.38); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .isc-footer__contact { border-color: rgba(255, 255, 255, 0.18); }
+  :root:not([data-theme="light"]) .isc-footer__contact:hover { border-color: rgba(255, 255, 255, 0.38); }
+}
+
+@media (max-width: 600px) {
+  .isc-footer {
+    padding: 12px 16px;
+    font-size: 0.611rem;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "contact logo"
+      "credit  credit";
+    gap: 8px 16px;
+    align-items: center;
+  }
+  .isc-footer__credit { justify-self: center; }
+}

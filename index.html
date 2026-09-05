@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>État des services – ISC</title>
+    <meta name="description" content="Disponibilité des services de la filière ISC (HES-SO Valais-Wallis) sur les 90 derniers jours." />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <!-- Theme before first paint: same key and fallback as useTheme() in @isc-hei/design. -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("isc.theme");
+          if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          document.documentElement.setAttribute("data-theme", t);
+        } catch (e) {}
+      })();
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body>
+    <div id="app" class="isc-page__frame"></div>
+  </body>
+</html>
