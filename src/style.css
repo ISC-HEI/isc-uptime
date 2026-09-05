@@ -5,7 +5,7 @@
    ISC magenta, as everywhere in the fleet. */
 
 :root {
-  --bg: var(--isc-bg-page);
+  --bg: #fafafa;
   --surface: var(--isc-bg-white);
   --ink: var(--isc-text-primary);
   --muted: var(--isc-text-muted);
@@ -24,6 +24,7 @@
 }
 
 :root[data-theme="dark"] {
+  --bg: #0e0e10;
   --link: #f04ea3;
   --ok: #7fb8ae;
   --degraded: #d9b53f;
@@ -34,6 +35,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    --bg: #0e0e10;
     --link: #f04ea3;
     --ok: #7fb8ae;
     --degraded: #d9b53f;
@@ -111,6 +113,9 @@ button:focus-visible {
 }
 
 .content {
+  width: 100%;
+  max-width: var(--isc-max-width);
+  margin: 0 auto;
   padding: 0 var(--gutter) 3rem;
 }
 
@@ -147,10 +152,16 @@ button:focus-visible {
   :root:not([data-theme="light"]) .topbar__theme-fab .icon-moon { display: block; }
 }
 
-/* The one loud element: the colour strip under the header carries the overall state. */
-.state-band {
+/* The one loud element: the dot in front of the headline carries the overall state. */
+.hero-dot {
+  display: inline-block;
+  width: 0.55em;
+  height: 0.55em;
+  border-radius: 50%;
   background: var(--c, var(--nodata));
-  transition: background-color 0.35s ease;
+  margin-right: 0.35em;
+  vertical-align: 0.12em;
+  box-shadow: 0 0 0 0.18em color-mix(in srgb, var(--c, var(--nodata)) 25%, transparent);
 }
 
 /* ---------- hero ---------- */

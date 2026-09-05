@@ -2,7 +2,7 @@
    Vendored subset of @isc-hei/design 0.2.2 (isc-hub/packages/design).
    This app is vanilla TS, so it cannot consume the Vue components; it wears
    the look by vendoring the tokens + the CSS of the ported components
-   (ISCHeader, Footer, ColorStrip, .isc-fab, [data-tooltip]). Class names are
+   (ISCHeader, Footer, .isc-fab, [data-tooltip]). Class names are
    kept verbatim so the header is pixel-identical to the Vue consumers.
    Snapshot: re-vendor by hand when the package changes upstream.
    The package's body/font reset is deliberately NOT vendored (style.css owns it).
@@ -75,27 +75,6 @@
   text-transform: uppercase;
   margin-top: var(--isc-mono-nudge, 2px);
 }
-
-/* ─── Page shell ─── */
-.isc-page {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.isc-page__frame {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: var(--isc-bg-white);
-  border-left: 0.5px solid var(--isc-border-default);
-  border-right: 0.5px solid var(--isc-border-default);
-  max-width: var(--isc-max-width);
-  width: 100%;
-  margin: 0 auto;
-}
-
-.isc-page__frame > .isc-footer { margin-top: auto; }
 
 /* ─── FAB ─── */
 .isc-fab {
@@ -249,10 +228,6 @@
   .isc-header__brand { flex: 0 0 100%; justify-content: center; }
   .isc-header__title { font-size: 1.056rem; }
 }
-
-/* ─── ColorStrip (static variant of components/ColorStrip.vue) ─── */
-.isc-color-strip { height: 6px; }
-@media (max-width: 540px) { .isc-color-strip { height: 5px; } }
 
 /* ─── Footer (ported from components/Footer.vue) ─── */
 .isc-footer {

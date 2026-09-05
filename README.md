@@ -81,7 +81,7 @@ For a custom domain, rename `public/CNAME.example` to `public/CNAME` and add the
 
 The app is not Vue, so it cannot import the components of `@isc-hei/design`. It vendors the
 package's tokens and the CSS of the ported components in `src/isc-design.css` (ISCHeader, Footer,
-ColorStrip, `.isc-fab`, `[data-tooltip]`) and renders the same markup from `src/render.ts`.
+`.isc-fab`, `[data-tooltip]`) and renders the same markup from `src/render.ts`.
 When the package changes upstream, re-vendor those blocks by hand.
 
 ```

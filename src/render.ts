@@ -45,11 +45,9 @@ export function renderPage(data: StatusPayload, opts: RenderOptions): string {
 
   return `
     ${renderHeader(opts.base)}
-    <div class="isc-color-strip state-band ${state}" role="presentation"></div>
-
     <main class="content">
       <section class="hero state-${state}">
-        <h1>${esc(overallHeadline(data.overall.state, data.active_incidents.length))}</h1>
+        <h1><span class="hero-dot ${state}" aria-hidden="true"></span>${esc(overallHeadline(data.overall.state, data.active_incidents.length))}</h1>
         <p class="stamp">
           Relevé ${esc(snapshotStamp(data.generated_at))}${opts.fromSnapshot ? ", mis à jour toutes les cinq minutes" : ""}.
         </p>
@@ -105,9 +103,7 @@ function renderHeader(base: string): string {
           <div class="isc-header__divider"></div>
           <div class="isc-header__titles">
             <div class="isc-header__surtitle isc-mono-label" style="color:${ACCENT_DARK}">
-              <a href="${HUB}">ISC Hub</a>
-              <span class="isc-header__surtitle-sep" aria-hidden="true">/</span>
-              Statut
+              <a href="${HUB}">ISC Hub</a><span class="isc-header__surtitle-sep" aria-hidden="true">/</span>Statut
             </div>
             <div class="isc-header__title">État des services</div>
           </div>
