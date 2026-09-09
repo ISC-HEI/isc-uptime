@@ -29,6 +29,21 @@ const REPO = "https://github.com/ISC-HEI/isc-uptime";
 const ACCENT_LIGHT = "#e2abba";
 const ACCENT_DARK = "#b1718d";
 
+/* Display order of the upstream groups: the services people actually use come
+   first, the plumbing behind them last. Upstream only sorts components *within*
+   a group, so the order between groups has to be decided here. Groups this list
+   does not name keep their upstream order, after the named ones. */
+const GROUP_ORDER = ["Web and services", "Infrastructure"];
+
+function orderedGroups(groups: Group[]): Group[] {
+  const rank = (g: Group) => {
+    const i = g.name ? GROUP_ORDER.indexOf(g.name) : -1;
+    return i < 0 ? GROUP_ORDER.length : i;
+  };
+  // Array.prototype.sort is stable, so unnamed/unknown groups stay in order.
+  return [...groups].sort((a, b) => rank(a) - rank(b));
+}
+
 export interface RenderOptions {
   /** Origin of the uptimepage page, used for incident permalinks and the RSS feed. */
   base: string;
@@ -40,8 +55,9 @@ export function renderPage(data: StatusPayload, opts: RenderOptions): string {
   const state = visualState(data.overall.state);
   const generated = new Date(data.generated_at);
   const incidents = dedupe([...data.active_incidents, ...data.recent_incidents]);
+  const groups = orderedGroups(data.groups);
   const uptimes = new Map<string, Uptime | null>();
-  for (const g of data.groups) for (const c of g.components) uptimes.set(c.id, componentUptime(c, incidents, generated));
+  for (const g of groups) for (const c of g.components) uptimes.set(c.id, componentUptime(c, incidents, generated));
   const overall = overallUptime([...uptimes.values()]);
 
   return `
@@ -63,7 +79,7 @@ export function renderPage(data: StatusPayload, opts: RenderOptions): string {
           ${overall ? renderOverallUptime(overall) : ""}
         </div>
         ${renderAxis(generated)}
-        ${data.groups.map((g) => renderGroup(g, generated, uptimes)).join("")}
+        ${groups.map((g) => renderGroup(g, generated, uptimes)).join("")}
         <p class="legend" aria-hidden="true">
           ${(["ok", "degraded", "outage", "maintenance", "nodata"] as const)
             .map((k) => `<span class="key"><span class="sw ${k}"></span>${STATE_LABEL[k]}</span>`)
