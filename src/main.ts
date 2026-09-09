@@ -10,6 +10,8 @@ import type { StatusPayload } from "./types";
 applyTheme();
 
 const base = (import.meta.env.VITE_STATUS_BASE as string | undefined)?.replace(/\/$/, "") ?? "";
+// Live fetches go through the CORS relay when configured (relay/), else straight upstream.
+const api = ((import.meta.env.VITE_STATUS_API as string | undefined) || base).replace(/\/$/, "");
 const root = document.getElementById("app")!;
 
 function paint(data: StatusPayload, fromSnapshot: boolean) {
@@ -48,13 +50,12 @@ root.addEventListener("pointerout", (e) => {
   if ((e.target as Element).closest("rect[data-tip]")) tip.hidden = true;
 });
 
-// The public API currently sends no CORS headers, so this fails silently on
-// GitHub Pages and the snapshot stays. If CORS is ever enabled upstream (or a
-// proxy is put in front), the page becomes live without any other change.
+// Without the relay the public API sends no CORS headers, so this fails
+// silently on GitHub Pages and the snapshot stays.
 async function refresh() {
-  if (!base) return;
+  if (!api) return;
   try {
-    const res = await fetch(`${base}/api/public/v1/status`, { mode: "cors", cache: "no-store" });
+    const res = await fetch(`${api}/api/public/v1/status`, { mode: "cors", cache: "no-store" });
     if (!res.ok) return;
     const live = (await res.json()) as StatusPayload;
     if (live?.overall?.state) paint(live, false);

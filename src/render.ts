@@ -50,7 +50,7 @@ export function renderPage(data: StatusPayload, opts: RenderOptions): string {
       <section class="hero state-${state}">
         <h1><span class="hero-dot ${state}" aria-hidden="true"></span>${esc(overallHeadline(data.overall.state, data.active_incidents.length))}</h1>
         <p class="stamp">
-          Relevé ${esc(snapshotStamp(data.generated_at))}${opts.fromSnapshot ? ", mis à jour toutes les cinq minutes" : ""}.
+          Relevé ${esc(snapshotStamp(data.generated_at))}${opts.fromSnapshot ? ", mis à jour toutes les cinq minutes" : ", en direct"}.
         </p>
       </section>
 

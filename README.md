@@ -45,12 +45,16 @@ same value as `STATUS_BASE` for the snapshot script.
 ```bash
 # ── uptimepage (required) ─────────────────────────────────────────────
 VITE_STATUS_BASE=https://isc3.uptimepage.dev   # public status page, no trailing slash
+
+# ── Live refresh (optional) ───────────────────────────────────────────
+VITE_STATUS_API=                               # *.workers.dev URL of the relay, empty = snapshot only
 ```
 
 | Variable | Required | Default | Purpose |
 |---|---|---|---|
 | `VITE_STATUS_BASE` | yes | — | Origin of the uptimepage instance (permalinks, RSS, live fetch) |
 | `STATUS_BASE` | for CI only | `VITE_STATUS_BASE` | Same origin, read by `scripts/snapshot.ts` |
+| `VITE_STATUS_API` | no | `VITE_STATUS_BASE` | Origin of the CORS relay (`relay/`) for live refresh in the browser |
 
 ## Pipeline
 
@@ -67,8 +71,10 @@ flowchart LR
     C -->|deploy-pages| D["🚀 GitHub Pages"]
 ```
 
-If CORS is ever enabled upstream, `src/main.ts` already retries a live fetch every 30 s and
-switches over on its own. GitHub disables scheduled workflows after 60 days without a commit;
+The page also tries a live fetch every 30 s. Upstream sends no CORS headers, so this only works
+through the small Cloudflare Worker in [`relay/`](./relay/): it adds the header and caches the
+JSON 60 s at the edge. Deploy it with `bunx wrangler deploy` from `relay/`, put its URL in
+`VITE_STATUS_API`, and the page refreshes itself every minute. GitHub disables scheduled workflows after 60 days without a commit;
 a trivial commit every couple of months keeps the cron alive.
 
 ## Web viewer
@@ -93,7 +99,8 @@ src/theme.ts          two-way theme, localStorage isc.theme
 src/render.ts         HTML rendering (header, hero, axis, strips, uptime, incidents, footer)
 src/isc-design.css    vendored @isc-hei/design subset
 src/style.css         page styles on top of the design tokens
-src/main.ts           paint snapshot, theme toggle, strip popovers, opportunistic live refresh
+src/main.ts           paint snapshot, theme toggle, strip popovers, live refresh through the relay
+relay/worker.js       Cloudflare Worker: CORS + 60 s edge cache for the status JSON
 ```
 
 ---
