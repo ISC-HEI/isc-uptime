@@ -255,6 +255,9 @@ h2 {
 }
 
 .uptime-overall .pct {
+  /* The plain space after the span is set in DM Sans and nearly vanishes next to
+     the wide Fira Code "%": give it visible room. */
+  margin-inline-end: 0.3em;
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-weight: 500;

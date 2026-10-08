@@ -51,13 +51,13 @@ export function overallUptime(list: Array<Uptime | null>): Uptime | null {
   };
 }
 
-const fmtPct = new Intl.NumberFormat("fr-CH", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+const fmtPct = new Intl.NumberFormat("fr-CH", { minimumFractionDigits: 0, maximumFractionDigits: 3 });
 
-/** "100 %", "99,86 %" — two decimals at most, no trailing zeros. */
+/** "100 %", "99,864 %" — three decimals at most, no trailing zeros, no-break space before the sign. */
 export function formatPct(pct: number): string {
-  // Avoid showing "100 %" for 99.996: round down to the displayed precision.
-  const floored = Math.floor(pct * 100) / 100;
-  return `${fmtPct.format(floored)} %`;
+  // Avoid showing "100 %" for 99.9996: round down to the displayed precision.
+  const floored = Math.floor(pct * 1000) / 1000;
+  return `${fmtPct.format(floored)}\u00a0%`;
 }
 
 /** Visual class for the percentage: quiet by default, tinted when it drops. */
