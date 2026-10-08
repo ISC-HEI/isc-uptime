@@ -176,11 +176,19 @@ button:focus-visible {
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  /* will-change keeps the dot on its own compositor layer, so the small scale
+     is interpolated on the GPU instead of being re-rasterised to whole pixels.
+     --t is a negative delay set from the page clock: the page is re-rendered
+     on every refresh, and without it the animation would restart from zero. */
   .hero-dot {
     animation: hero-breathe var(--pulse, 2.8s) ease-in-out infinite;
+    animation-delay: var(--t, 0ms);
+    will-change: transform;
   }
   .hero-dot::after {
     animation: hero-ping var(--pulse, 2.8s) cubic-bezier(0, 0, 0.2, 1) infinite;
+    animation-delay: var(--t, 0ms);
+    will-change: transform, opacity;
   }
   .hero-dot.degraded { --pulse: 1.6s; }
   .hero-dot.outage { --pulse: 1.1s; }

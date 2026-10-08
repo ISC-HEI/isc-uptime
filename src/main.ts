@@ -16,6 +16,9 @@ const root = document.getElementById("app")!;
 
 function paint(data: StatusPayload, fromSnapshot: boolean) {
   root.innerHTML = renderPage(data, { base, fromSnapshot });
+  // The dot is a fresh element on every paint; phase its animation to the page
+  // clock so a refresh does not make it jump.
+  root.querySelector<HTMLElement>(".hero-dot")?.style.setProperty("--t", `${-Math.round(performance.now())}ms`);
   document.title = `${data.overall.label === "All Systems Operational" ? "Tout fonctionne" : "État des services"} – ISC`;
 }
 
