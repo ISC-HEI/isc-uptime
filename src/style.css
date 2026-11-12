@@ -561,6 +561,113 @@ h3.group {
   line-height: 1.45;
 }
 
+/* Past incidents: one line each, details on click. */
+
+.incident-list.compact {
+  gap: 0.4rem;
+}
+
+.incident-list.compact .incident {
+  padding: 0;
+}
+
+.incident summary {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+  padding: 0.5rem 0.9rem 0.5rem 1.1rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.incident summary::-webkit-details-marker {
+  display: none;
+}
+
+.incident summary::before,
+.older > summary::before {
+  content: "";
+  flex: none;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-right: 1.5px solid var(--muted);
+  border-bottom: 1.5px solid var(--muted);
+  transform: rotate(-45deg);
+  transition: transform 120ms ease;
+}
+
+.incident details[open] > summary::before,
+.older[open] > summary::before {
+  transform: rotate(45deg);
+}
+
+.incident summary:hover {
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+}
+
+.incident summary:focus-visible,
+.older > summary:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: -2px;
+}
+
+.incident-list.compact .title {
+  font-size: 0.9375rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.incident .row-meta {
+  margin-left: auto;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.incident-body {
+  padding: 0 0.9rem 0.8rem 2.25rem;
+}
+
+.incident-body .incident-meta {
+  margin-top: 0;
+}
+
+.incident-body .more {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+}
+
+.older {
+  margin-top: 0.6rem;
+}
+
+.older > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.3rem 0.2rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.older > summary::-webkit-details-marker {
+  display: none;
+}
+
+.older > summary:hover {
+  color: var(--ink);
+}
+
+.older > .incident-list {
+  margin-top: 0.4rem;
+}
+
 .active h2 {
   color: var(--outage);
 }
@@ -629,6 +736,20 @@ h3.group {
 
   .isc-footer__gh span {
     display: none;
+  }
+
+  .incident summary {
+    flex-wrap: wrap;
+  }
+
+  .incident .row-meta {
+    order: 3;
+    flex-basis: 100%;
+    margin-left: 1.15rem;
+  }
+
+  .incident summary .pill {
+    margin-left: auto;
   }
 
   .incident-meta {

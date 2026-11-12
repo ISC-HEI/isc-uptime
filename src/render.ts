@@ -93,7 +93,7 @@ export function renderPage(data: StatusPayload, opts: RenderOptions): string {
         <h2 id="incidents-h">Incidents récents</h2>
         ${
           data.recent_incidents.length
-            ? `<ol class="incident-list">${data.recent_incidents.map((i) => renderIncident(i, opts.base)).join("")}</ol>`
+            ? renderRecent(data.recent_incidents, opts.base)
             : `<p class="empty">Aucun incident sur la période.</p>`
         }
         ${data.recent_incidents_has_more ? `<p class="more"><a href="${esc(opts.base)}/status">Incidents plus anciens</a></p>` : ""}
@@ -257,6 +257,60 @@ function renderIncident(i: Incident, base: string, open = false): string {
         <span class="dur">${esc(duration(i.started_at, i.ended_at))}${i.ended_at ? " (résolu)" : ", en cours"}</span>
       </p>
       ${last ? `<p class="incident-msg">${esc(last.message)}</p>` : ""}
+    </li>`;
+}
+
+/** Rows shown before the "older" fold. */
+const RECENT_VISIBLE = 5;
+
+/**
+ * Ids of the <details> the reader opened. The page is re-rendered on every
+ * refresh, so the open state lives here and main.ts keeps it in sync.
+ */
+export const openDetails = new Set<string>();
+
+const openAttr = (id: string) => (openDetails.has(id) ? " open" : "");
+
+function renderRecent(list: Incident[], base: string): string {
+  const rows = (l: Incident[]) => `<ol class="incident-list compact">${l.map((i) => renderIncidentRow(i, base)).join("")}</ol>`;
+  const older = list.slice(RECENT_VISIBLE);
+  return `
+    ${rows(list.slice(0, RECENT_VISIBLE))}
+    ${
+      older.length
+        ? `<details class="older" data-id="older"${openAttr("older")}>
+            <summary>${older.length} incident${older.length > 1 ? "s" : ""} plus ancien${older.length > 1 ? "s" : ""}</summary>
+            ${rows(older)}
+          </details>`
+        : ""
+    }`;
+}
+
+/** One line per past incident; the message and the permalink open on click. */
+function renderIncidentRow(i: Incident, base: string): string {
+  const last = [...i.updates].sort((a, b) => Date.parse(a.posted_at) - Date.parse(b.posted_at)).at(-1);
+  const sev = i.severity === "minor" ? "degraded" : "outage";
+  const phase = i.ended_at ? "resolved" : i.status_phase;
+  const end = i.ended_at ? (sameDayIso(i.started_at, i.ended_at) ? time(i.ended_at) : dayTime(i.ended_at)) : null;
+  return `
+    <li class="incident sev-${sev}">
+      <details data-id="${esc(i.id)}"${openAttr(i.id)}>
+        <summary>
+          <span class="title">${esc(i.title)}</span>
+          <span class="row-meta">${esc(dayTime(i.started_at))} · ${esc(duration(i.started_at, i.ended_at))}</span>
+          <span class="pill pill-phase phase-${esc(phase)}">${esc(PHASE_LABEL[phase] ?? phase)}</span>
+        </summary>
+        <div class="incident-body">
+          <p class="incident-meta">
+            ${i.component_name ? `<span>${esc(i.component_name)}</span><span class="sep">·</span>` : ""}
+            <span class="range">${esc(dayTime(i.started_at))}${end ? ` → ${esc(end)}` : ""}</span>
+            <span class="sep">·</span>
+            <span>${esc(SEVERITY_LABEL[i.severity] ?? i.severity)}</span>
+          </p>
+          ${last ? `<p class="incident-msg">${esc(last.message)}</p>` : ""}
+          <p class="more"><a href="${esc(base)}/status/incidents/${esc(i.id)}">Chronologie complète</a></p>
+        </div>
+      </details>
     </li>`;
 }
 

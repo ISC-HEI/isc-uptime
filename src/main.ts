@@ -3,7 +3,7 @@ import "@fontsource-variable/fira-code";
 import "./isc-design.css";
 import "./style.css";
 import snapshot from "./data/status.json";
-import { renderPage } from "./render";
+import { openDetails, renderPage } from "./render";
 import { THEME_TOOLTIP, applyTheme, cycleTheme } from "./theme";
 import type { StatusPayload } from "./types";
 
@@ -32,6 +32,20 @@ root.addEventListener("click", (e) => {
   btn.dataset.tooltip = THEME_TOOLTIP[mode];
   btn.setAttribute("aria-label", THEME_TOOLTIP[mode]);
 });
+
+/* Incident accordions: remember what is open across re-renders. `toggle` does
+   not bubble, hence the capture. */
+root.addEventListener(
+  "toggle",
+  (e) => {
+    const d = e.target as HTMLDetailsElement;
+    const id = d.dataset?.id;
+    if (!id) return;
+    if (d.open) openDetails.add(id);
+    else openDetails.delete(id);
+  },
+  true,
+);
 
 /* Custom popover for the 90 day cells. SVG <rect> cannot carry a CSS ::after,
    so one floating element follows the hovered cell instead of a native title. */
