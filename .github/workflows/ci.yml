@@ -23,5 +23,5 @@ jobs:
           bun-version: latest
       - run: bun install --frozen-lockfile
       - run: bun run typecheck
-      # Add `bun test` here with the first test file: it fails when it finds none.
+      - run: bun test
       - run: bun run build

@@ -12,7 +12,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "snapshot": "bun scripts/snapshot.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
   },
   "type": "module",
   "dependencies": {
