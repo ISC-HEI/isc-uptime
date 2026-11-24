@@ -41,6 +41,7 @@ bun run dev
 
 # What CI runs before deploying
 bun run typecheck
+bun test
 bun run build
 ```
 
@@ -72,10 +73,10 @@ The public API sends no CORS headers, so a browser cannot call it directly. Two 
 executes every 10 to 20 minutes in practice:
 
 1. **`snapshot`** — fetches `/api/public/v1/status` into `src/data/status.json`
-2. **Builds** — typecheck, then Vite bundles the page with the snapshot embedded
+2. **Builds** — typecheck and unit tests, then Vite bundles the page with the snapshot embedded
 3. **Deploys** — `actions/deploy-pages` publishes `dist/`
 
-Changes to `main` go through a pull request: `.github/workflows/ci.yml` runs typecheck and build
+Changes to `main` go through a pull request: `.github/workflows/ci.yml` runs typecheck, tests and build
 on it, without deploying, and the branch requires that check and one approval.
 
 GitHub disables scheduled workflows after 60 days without a commit; a trivial commit every
@@ -114,6 +115,7 @@ scripts/snapshot.ts   fetch public JSON → src/data/status.json
 src/types.ts          payload types
 src/format.ts         French labels, Zurich time, state normalisation
 src/uptime.ts         availability from the incident timeline
+src/uptime.test.ts    unit tests (`bun test`), one `*.test.ts` next to the file it tests
 src/theme.ts          two-way theme, localStorage isc.theme
 src/render.ts         HTML rendering (header, hero, axis, strips, uptime, incidents, footer)
 src/isc-design.css    vendored @isc-hei/design subset
