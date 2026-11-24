@@ -6,23 +6,26 @@
 </picture>
 
 [![Build and deploy status page](https://github.com/ISC-HEI/isc-uptime/actions/workflows/deploy.yml/badge.svg)](https://github.com/ISC-HEI/isc-uptime/actions/workflows/deploy.yml)
-[![Services](https://isc3.uptimepage.dev/api/public/v1/badge.svg)](https://isc-hei.github.io/isc-uptime/)
+[![Services](https://isc3.uptimepage.dev/api/public/v1/badge.svg)](https://status.isc-vs.ch/)
 
 # ISC status page
 
 Static, ISC-themed front for the public status of the ISC services (HES-SO Valais-Wallis).
 The monitoring itself runs on [uptimepage](https://isc3.uptimepage.dev/status); this repo only
 owns the design: a [Vite](https://vite.dev/) + vanilla TypeScript page built with [Bun](https://bun.sh/)
-that wears the shared ISC look (header, footer, tokens and theme of `@isc-hei/design`) and is
-redeployed to GitHub Pages by CI every five minutes.
+that wears the shared ISC look (header, footer, tokens and theme of `@isc-hei/design`), is
+rebuilt on GitHub Pages by a scheduled workflow and refreshes itself in the browser through a
+small CORS relay. The page is in French.
+
+**→ [status.isc-vs.ch](https://status.isc-vs.ch/)**
 
 ## Features
 
 - **90-day history** — one strip per service on a shared month axis, coloured with the ISC petal palette
 - **Uptime percentage** — per service and overall, computed from the incident timeline over the observed window
 - **Incidents and maintenance** — active, recent and planned, with Swiss time and durations
-- **Light and dark theme** — two-way toggle persisted under `isc.theme`, shared with the ISC Hub
-- **Snapshot-based** — no server, no CORS proxy: CI fetches the public JSON and rebuilds the site
+- **Light and dark theme** — two-way toggle persisted under `isc.theme`, the same key as the ISC Hub
+- **Snapshot first, live after** — the page paints the snapshot embedded at build time, then polls the relay every 30 s
 
 ## Quick Start
 
@@ -35,53 +38,64 @@ bun run snapshot
 
 # Dev server with hot reload
 bun run dev
+
+# What CI runs before deploying
+bun run typecheck
+bun run build
 ```
 
 ## Environment variables (`.env`)
 
-`.env` is committed (it holds no secret) and read by Vite at build time; the workflow sets the
-same value as `STATUS_BASE` for the snapshot script.
+`.env` is committed (it holds no secret) and read by Vite at build time. The uptimepage origin
+is also hard-coded as `STATUS_BASE` in `.github/workflows/deploy.yml` for the snapshot script:
+change both together.
 
 ```bash
 # ── uptimepage (required) ─────────────────────────────────────────────
 VITE_STATUS_BASE=https://isc3.uptimepage.dev   # public status page, no trailing slash
 
 # ── Live refresh (optional) ───────────────────────────────────────────
-VITE_STATUS_API=                               # *.workers.dev URL of the relay, empty = snapshot only
+VITE_STATUS_API=https://isc-status-relay.isc-hei.workers.dev   # CORS relay, empty = snapshot only
 ```
 
 | Variable | Required | Default | Purpose |
 |---|---|---|---|
 | `VITE_STATUS_BASE` | yes | — | Origin of the uptimepage instance (permalinks, RSS, live fetch) |
-| `STATUS_BASE` | for CI only | `VITE_STATUS_BASE` | Same origin, read by `scripts/snapshot.ts` |
+| `STATUS_BASE` | no | `VITE_STATUS_BASE` | Same origin, read by `scripts/snapshot.ts`; set in the workflow |
 | `VITE_STATUS_API` | no | `VITE_STATUS_BASE` | Origin of the CORS relay (`relay/`) for live refresh in the browser |
 
 ## Pipeline
 
-The public API sends no CORS headers, so a browser on GitHub Pages cannot call it. CI does it instead:
+The public API sends no CORS headers, so a browser cannot call it directly. Two paths feed the page.
+
+**Snapshot, at build time.** The workflow runs on push and on a `*/5` cron, which GitHub
+executes every 10 to 20 minutes in practice:
 
 1. **`snapshot`** — fetches `/api/public/v1/status` into `src/data/status.json`
-2. **Builds** — Vite bundles the page with the snapshot embedded
-3. **Deploys** — `actions/deploy-pages` publishes `dist/`, on push and every five minutes by cron
+2. **Builds** — typecheck, then Vite bundles the page with the snapshot embedded
+3. **Deploys** — `actions/deploy-pages` publishes `dist/`
+
+GitHub disables scheduled workflows after 60 days without a commit; a trivial commit every
+couple of months keeps the cron alive.
+
+**Live, in the browser.** The page polls the Cloudflare Worker in [`relay/`](./relay/) every
+30 s. The Worker adds the CORS header and caches the JSON 60 s at the edge, so the displayed
+state is at most about a minute old and uptimepage sees one request per minute whatever the
+number of visitors. If the relay does not answer, the page keeps showing the snapshot.
+To redeploy the Worker: `bunx wrangler deploy` from `relay/`.
 
 ```mermaid
 flowchart LR
     A["🌐 uptimepage JSON"] -->|snapshot| B["📄 status.json"]
     B -->|vite build| C["📑 dist/"]
     C -->|deploy-pages| D["🚀 GitHub Pages"]
+    A -->|"CORS + 60 s cache"| R["☁️ relay Worker"]
+    R -->|"poll 30 s"| E["🖥️ browser"]
+    D --> E
 ```
 
-The page also tries a live fetch every 30 s. Upstream sends no CORS headers, so this only works
-through the small Cloudflare Worker in [`relay/`](./relay/): it adds the header and caches the
-JSON 60 s at the edge. Deploy it with `bunx wrangler deploy` from `relay/`, put its URL in
-`VITE_STATUS_API`, and the page refreshes itself every minute. GitHub disables scheduled workflows after 60 days without a commit;
-a trivial commit every couple of months keeps the cron alive.
-
-## Web viewer
-
-**→ [Open the status page](https://isc-hei.github.io/isc-uptime/)**
-
-For a custom domain, rename `public/CNAME.example` to `public/CNAME` and add the DNS record.
+The custom domain `status.isc-vs.ch` is set in the repository's Pages settings; a deployment
+through `actions/deploy-pages` does not read a `CNAME` file.
 
 ## Design
 
@@ -89,6 +103,8 @@ The app is not Vue, so it cannot import the components of `@isc-hei/design`. It 
 package's tokens and the CSS of the ported components in `src/isc-design.css` (ISCHeader, Footer,
 `.isc-fab`, `[data-tooltip]`) and renders the same markup from `src/render.ts`.
 When the package changes upstream, re-vendor those blocks by hand.
+
+## Project layout
 
 ```
 scripts/snapshot.ts   fetch public JSON → src/data/status.json
