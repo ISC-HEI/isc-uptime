@@ -75,6 +75,9 @@ executes every 10 to 20 minutes in practice:
 2. **Builds** — typecheck, then Vite bundles the page with the snapshot embedded
 3. **Deploys** — `actions/deploy-pages` publishes `dist/`
 
+Changes to `main` go through a pull request: `.github/workflows/ci.yml` runs typecheck and build
+on it, without deploying, and the branch requires that check and one approval.
+
 GitHub disables scheduled workflows after 60 days without a commit; a trivial commit every
 couple of months keeps the cron alive.
 
