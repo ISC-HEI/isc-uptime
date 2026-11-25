@@ -51,7 +51,7 @@ While the DEV server is on, these fixture views can be tried:
 - `http://localhost:5173/?demo=maintenance`
 - `http://localhost:5173/?demo=manyincidents`
 - `http://localhost:5173/?demo=hasmoretrue`
-- `http://localhost:5173/?demo=withoutdata`
+- `http://localhost:5173/?demo=nodata`
 
 These demo modes are only for development; the production build ignore the `demo` parameter.
 
