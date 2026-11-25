@@ -18,7 +18,7 @@ describe("visualState", () => {
     expect(visualState("degraded")).toBe("degraded");
   });
 
-  test("reads 'partial_outage' as degraded", () => {
+  test("reads 'partial_outage' as outage", () => {
     expect(visualState("partial_outage")).toBe("outage");
   });
 
