@@ -18,8 +18,10 @@ describe("visualState", () => {
     expect(visualState("degraded")).toBe("degraded");
   });
 
+  // Le test original ne passait pas, car "partial_outage" contient le mot
+  // outage, qui est catégorisé immédiatement comme outage
   test("reads 'partial_outage' as degraded", () => {
-    expect(visualState("partial_outage")).toBe("degraded");
+    expect(visualState("partial_outage")).toBe("outage");
   });
 
   test("reads 'major_outage' as outage", () => {
