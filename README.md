@@ -45,6 +45,16 @@ bun test
 bun run build
 ```
 
+While the DEV server is on, these fixture views can be tried:
+
+- `http://localhost:5173/?demo=outage`
+- `http://localhost:5173/?demo=maintenance`
+- `http://localhost:5173/?demo=manyincidents`
+- `http://localhost:5173/?demo=hasmoretrue`
+- `http://localhost:5173/?demo=nodata`
+
+These demo modes are only for development; the production build ignore the `demo` parameter.
+
 ## Environment variables (`.env`)
 
 `.env` is committed (it holds no secret) and read by Vite at build time. The uptimepage origin

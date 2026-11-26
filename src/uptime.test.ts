@@ -40,6 +40,12 @@ function incident(startHoursAgo: number, endHoursAgo: number | null, componentId
   };
 }
 
+describe("time", () => {
+  test("is null when no data", () => {
+    expect(componentUptime(component(0), [], NOW));
+  });
+});
+
 describe("componentUptime", () => {
   test("is 100 % without any incident", () => {
     const u = componentUptime(component(90), [], NOW);

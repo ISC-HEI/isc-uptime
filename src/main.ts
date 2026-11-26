@@ -3,6 +3,11 @@ import "@fontsource-variable/fira-code";
 import "./isc-design.css";
 import "./style.css";
 import snapshot from "./data/status.json";
+import outageDemo from "./data/fixtures/outage.json";
+import maintenanceDemo from "./data/fixtures/maintenance.json";
+import manyIncidentsDemo from "./data/fixtures/manyincidents.json";
+import hasMoreTrueDemo from "./data/fixtures/hasmoretrue.json";
+import withoutDataDemo from "./data/fixtures/withoutdata.json";
 import { openDetails, renderPage } from "./render";
 import { THEME_TOOLTIP, applyTheme, cycleTheme } from "./theme";
 import type { StatusPayload } from "./types";
@@ -13,6 +18,15 @@ const base = (import.meta.env.VITE_STATUS_BASE as string | undefined)?.replace(/
 // Live fetches go through the CORS relay when configured (relay/), else straight upstream.
 const api = ((import.meta.env.VITE_STATUS_API as string | undefined) || base).replace(/\/$/, "");
 const root = document.getElementById("app")!;
+const demoName = import.meta.env.DEV ? new URLSearchParams(window.location.search).get("demo") : null;
+const demos: Record<string, StatusPayload> = {
+  outage: outageDemo as StatusPayload,
+  maintenance: maintenanceDemo as StatusPayload,
+  manyincidents: manyIncidentsDemo as StatusPayload,
+  hasmoretrue: hasMoreTrueDemo as StatusPayload,
+  nodata: withoutDataDemo as StatusPayload,
+};
+const demoData = demoName ? demos[demoName] : undefined;
 
 function paint(data: StatusPayload, fromSnapshot: boolean) {
   root.innerHTML = renderPage(data, { base, fromSnapshot });
@@ -22,7 +36,7 @@ function paint(data: StatusPayload, fromSnapshot: boolean) {
   document.title = `${data.overall.label === "All Systems Operational" ? "Tout fonctionne" : "État des services"} – ISC`;
 }
 
-paint(snapshot as StatusPayload, true);
+paint(demoData ?? (snapshot as StatusPayload), true);
 
 /* Theme FAB (delegated: the page is re-rendered on every refresh). */
 root.addEventListener("click", (e) => {
@@ -81,5 +95,7 @@ async function refresh() {
   }
 }
 
-refresh();
-setInterval(refresh, 30_000);
+if (!demoData) {
+  refresh();
+  setInterval(refresh, 30_000);
+}
