@@ -76,14 +76,14 @@ export function renderPage(data: StatusPayload, opts: RenderOptions): string {
       <section class="services" aria-labelledby="services-h">
         <div class="section-head">
           <h2 id="services-h">Services, 90 derniers jours</h2>
-          ${overall ? renderOverallUptime(overall) : ""}
+          ${overall ? renderOverallUptime(overall, data.recent_incidents_has_more) : ""}
         </div>
         ${renderAxis(generated)}
-        ${groups.map((g) => renderGroup(g, generated, uptimes)).join("")}
+        ${groups.map((g) => renderGroup(g, generated, uptimes, data.recent_incidents_has_more)).join("")}
         <p class="legend" aria-hidden="true">
           ${(["ok", "degraded", "outage", "maintenance", "nodata"] as const)
-            .map((k) => `<span class="key"><span class="sw ${k}"></span>${STATE_LABEL[k]}</span>`)
-            .join("")}
+      .map((k) => `<span class="key"><span class="sw ${k}"></span>${STATE_LABEL[k]}</span>`)
+      .join("")}
         </p>
       </section>
 
@@ -91,11 +91,10 @@ export function renderPage(data: StatusPayload, opts: RenderOptions): string {
 
       <section class="incidents" aria-labelledby="incidents-h">
         <h2 id="incidents-h">Incidents récents</h2>
-        ${
-          data.recent_incidents.length
-            ? renderRecent(data.recent_incidents, opts.base)
-            : `<p class="empty">Aucun incident sur la période.</p>`
-        }
+        ${data.recent_incidents.length
+      ? renderRecent(data.recent_incidents, opts.base)
+      : `<p class="empty">Aucun incident sur la période.</p>`
+    }
         ${data.recent_incidents_has_more ? `<p class="more"><a href="${esc(opts.base)}/status">Incidents plus anciens</a></p>` : ""}
       </section>
     </main>
@@ -166,10 +165,16 @@ function renderFooter(base: string): string {
 
 /* ---------- services ---------- */
 
-function renderOverallUptime(u: Uptime): string {
+function renderOverallUptime(u: Uptime, isUpperBound: boolean): string {
+  const prefix = isUpperBound ? "≤ " : "";
+
+  const tooltip = isUpperBound
+    ? `Borne supérieure (historique d'incidents connus), ${u.days} jour${u.days > 1 ? "s" : ""} observé${u.days > 1 ? "s" : ""}`
+    : `Moyenne des services, ${u.days} jour${u.days > 1 ? "s" : ""} observé${u.days > 1 ? "s" : ""}`;
+
   return `<p class="uptime-overall ${pctTone(u.pct)}"
-    data-tooltip="Moyenne des services, ${u.days} jour${u.days > 1 ? "s" : ""} observé${u.days > 1 ? "s" : ""}"
-    data-tooltip-pos="bottom"><span class="pct">${esc(formatPct(u.pct))}</span> de disponibilité</p>`;
+    data-tooltip="${esc(tooltip)}"
+    data-tooltip-pos="bottom"><span class="pct">${prefix}${esc(formatPct(u.pct))}</span> de disponibilité</p>`;
 }
 
 function renderAxis(generated: Date): string {
@@ -276,13 +281,12 @@ function renderRecent(list: Incident[], base: string): string {
   const older = list.slice(RECENT_VISIBLE);
   return `
     ${rows(list.slice(0, RECENT_VISIBLE))}
-    ${
-      older.length
-        ? `<details class="older" data-id="older"${openAttr("older")}>
+    ${older.length
+      ? `<details class="older" data-id="older"${openAttr("older")}>
             <summary>${older.length} incident${older.length > 1 ? "s" : ""} plus ancien${older.length > 1 ? "s" : ""}</summary>
             ${rows(older)}
           </details>`
-        : ""
+      : ""
     }`;
 }
 
@@ -325,8 +329,8 @@ function renderMaintenanceBlock(title: string, list: Maintenance[]): string {
       <h2 id="${id}">${esc(title)}</h2>
       <ol class="incident-list">
         ${list
-          .map(
-            (m) => `
+      .map(
+        (m) => `
           <li class="incident sev-maintenance">
             <div class="incident-head">
               <span class="title">${esc(m.title)}</span>
@@ -340,8 +344,8 @@ function renderMaintenanceBlock(title: string, list: Maintenance[]): string {
             </p>
             ${m.description ? `<p class="incident-msg">${esc(m.description)}</p>` : ""}
           </li>`,
-          )
-          .join("")}
+      )
+      .join("")}
       </ol>
     </section>`;
 }

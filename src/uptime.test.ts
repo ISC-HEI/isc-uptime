@@ -5,7 +5,7 @@
 // behaviour in plain words, `expect(...)` compares a result with what we want.
 import { describe, expect, test } from "bun:test";
 import type { Component, Incident } from "./types";
-import { componentUptime, formatPct, pctTone } from "./uptime";
+import { componentUptime, formatPct, overallUptime, pctTone } from "./uptime";
 
 const DAY_MS = 86_400_000;
 const HOUR_MS = 3_600_000;
@@ -40,9 +40,16 @@ function incident(startHoursAgo: number, endHoursAgo: number | null, componentId
   };
 }
 
-describe("time", () => {
-  test("is null when no data", () => {
-    expect(componentUptime(component(0), [], NOW));
+describe("overallUptime", () => {
+  test("calculate average of percentage", () => {
+    const up1 = componentUptime(component(32), [incident(24, 10)], NOW);
+    const up2 = componentUptime(component(90), [], NOW);
+    const overall = overallUptime([up1, up2]);
+
+    expect(overall).not.toBeNull();
+    expect(overall?.days).toBe(90);
+    // ! est un opérateur quand on sait que ça ne va pas être null
+    expect(overall?.pct).toBeCloseTo((up1!.pct + up2!.pct) / 2, 2)
   });
 });
 
@@ -72,6 +79,12 @@ describe("componentUptime", () => {
   test("ignores the incidents of other components", () => {
     const u = componentUptime(component(10), [incident(48, 24, "another-service")], NOW);
     expect(u?.pct).toBe(100);
+  });
+
+  // Ce test à d'abord échouer
+  test("ne compte pas deux fois les périodes d'incidents qui se chevauchent", () => {
+    const u = componentUptime(component(10), [incident(48, 24), incident(36, 12)], NOW);
+    expect(u?.pct).toBe(85)
   });
 });
 
