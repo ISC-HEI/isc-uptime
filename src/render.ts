@@ -189,16 +189,24 @@ function renderAxis(generated: Date): string {
   return `<div class="row axis" aria-hidden="true"><div class="axis-track">${ticks.join("")}</div><span class="axis-pct">uptime</span></div>`;
 }
 
-function renderGroup(g: Group, generated: Date, uptimes: Map<string, Uptime | null>): string {
+function renderGroup(g: Group, generated: Date, uptimes: Map<string, Uptime | null>, isUpperBound: boolean): string {
   const head = g.name ? `<h3 class="group">${esc(g.name)}</h3>` : "";
-  return head + g.components.map((c) => renderComponent(c, generated, uptimes.get(c.id) ?? null)).join("");
+  return head + g.components.map((c) => renderComponent(c, generated, uptimes.get(c.id) ?? null, isUpperBound)).join("");
 }
 
-function renderComponent(c: Component, generated: Date, u: Uptime | null): string {
+function renderComponent(c: Component, generated: Date, u: Uptime | null, isUpperBound: boolean): string {
   const cur = visualState(c.current_status);
+  const prefix = isUpperBound ? "≤ " : "";
+  const tooltip = u
+    ? isUpperBound
+      ? `Borne supérieure (historique d'incidents connus), ${u.days} jour${u.days > 1 ? "s" : ""} observé${u.days > 1 ? "s" : ""}`
+      : `Disponibilité sur ${u.days} jour${u.days > 1 ? "s" : ""} observé${u.days > 1 ? "s" : ""}`
+    : "";
+
   const pct = u
-    ? `<span class="uptime ${pctTone(u.pct)}" data-tooltip="Disponibilité sur ${u.days} jour${u.days > 1 ? "s" : ""} observé${u.days > 1 ? "s" : ""}" data-tooltip-pos="top">${esc(formatPct(u.pct))}</span>`
+    ? `<span class="uptime ${pctTone(u.pct)}" data-tooltip="${esc(tooltip)}" data-tooltip-pos="top">${prefix}${esc(formatPct(u.pct))}</span>`
     : `<span class="uptime nodata" data-tooltip="Pas encore de donnée" data-tooltip-pos="top">—</span>`;
+
   return `
     <div class="row component">
       <div class="who">
