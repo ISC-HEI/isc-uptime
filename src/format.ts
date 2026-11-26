@@ -1,6 +1,7 @@
 import type { DayState } from "./types";
 
 export const TZ = "Europe/Zurich";
+export const STALE_THRESHOLD_MS = 30 * 60 * 1000;
 const LOCALE = "fr-CH";
 
 /** Normalise the many spellings uptimepage may use into one of our five visual states. */
@@ -100,6 +101,11 @@ export function duration(start: string, end: string | null, now = new Date()): s
   const h = Math.floor(mins / 60);
   if (h < 48) return `${h} h ${String(mins % 60).padStart(2, "0")}`;
   return `${Math.floor(h / 24)} j ${String(h % 24).padStart(2, "0")} h`;
+}
+
+export function outdatedData(generatedAt: string, now = new Date()) {
+  const ageInMs = now.getTime() - new Date(generatedAt).getTime();
+  return ageInMs > STALE_THRESHOLD_MS ? snapshotStamp(generatedAt, now) : null;
 }
 
 export const SEVERITY_LABEL: Record<string, string> = {

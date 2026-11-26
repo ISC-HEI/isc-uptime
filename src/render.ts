@@ -12,6 +12,7 @@ import {
   monthShort,
   overallHeadline,
   snapshotStamp,
+  outdatedData,
   time,
   visualState,
 } from "./format";
@@ -54,6 +55,7 @@ export interface RenderOptions {
 export function renderPage(data: StatusPayload, opts: RenderOptions): string {
   const state = visualState(data.overall.state);
   const generated = new Date(data.generated_at);
+  const age = outdatedData(data.generated_at, new Date())
   const incidents = dedupe([...data.active_incidents, ...data.recent_incidents]);
   const groups = orderedGroups(data.groups);
   const uptimes = new Map<string, Uptime | null>();
@@ -70,6 +72,7 @@ export function renderPage(data: StatusPayload, opts: RenderOptions): string {
         </p>
       </section>
 
+      ${age !== null ? renderOutdatedDataBanner(age) : ""}
       ${data.active_incidents.length ? renderActive(data.active_incidents, opts.base) : ""}
       ${data.active_maintenance.length ? renderMaintenanceBlock("Maintenance en cours", data.active_maintenance) : ""}
 
@@ -359,3 +362,22 @@ function renderMaintenanceBlock(title: string, list: Maintenance[]): string {
 }
 
 const sameDay = (m: Maintenance) => day(m.starts_at) === day(m.ends_at);
+
+/* ---------- stale banner ---------- */
+function renderOutdatedDataBanner(age: string): string {
+  return `
+    <section class="active" aria-label="Avertissement sur l'âge des données affichées">
+      <ol class="incident-list">
+        <li class="incident open sev-degraded">
+          <div class="incident-head">
+            <span class="title">Données de statut plus d'actualité</span>
+            <span class="pill pill-sev sev-minor">Avertissement</span>
+          </div>
+          <p class="incident-msg">
+            Le dernier relevé de données date a eu lieu ${esc(age)}. La mise à jour automatique a un problème.
+          </p>
+        </li>
+      </ol>
+    </section>
+  `
+}
