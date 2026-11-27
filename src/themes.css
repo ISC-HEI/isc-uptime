@@ -1,0 +1,608 @@
+/* Colour themes ("palettes") of the status page.
+
+   Two attributes on <html> decide what the page looks like:
+     data-theme   = "light" | "dark"   the mode (theme.ts, shared ISC key)
+     data-palette = "<id>"             the palette (palettes.ts)
+   Every palette therefore has TWO renderings, one per mode.
+
+   A palette is nothing but a set of custom properties. The selectors are
+   written on [data-palette], not on :root, so that any element can wear a
+   palette: the cards of the theme menu each carry their own data-palette and
+   preview the real tokens, with no second list of colours to keep in sync.
+
+   Layout of this file:
+     1. base tokens (the "isc" palette), light then dark
+     2. the five orientation palettes, derived from one petal colour each
+     3. accessibility and screens: high contrast, e-paper
+     4. the improbable ones
+
+   To add a palette: add it to PALETTES in palettes.ts, then write its two
+   blocks here (copy an existing pair). `bun test` fails if a block is missing.
+
+   Rule of thumb for status colours: whatever the palette, "ok", "degraded",
+   "outage" and "maintenance" must stay tellable apart at a glance. */
+
+/* ════════════ 1. Base tokens = palette "isc" ════════════
+   App tokens, plus a restatement of the vendored --isc-* tokens
+   (isc-design.css) so a menu card can show "isc" inside another palette. */
+
+:root,
+[data-palette] {
+  /* identity */
+  --accent: rgb(226, 171, 186); /* header bar: the petal as in the logo */
+  --ink-l: #6e4657; /* small accent text on a light surface */
+  --ink-d: rgb(226, 171, 186); /* small accent text on a dark surface */
+  --link-l: #ec008b;
+  --link-d: #f04ea3;
+  --accent-ink: var(--ink-l);
+  --link: var(--link-l);
+
+  /* vendored tokens, light */
+  --isc-font-sans: "DM Sans Variable", "DM Sans", system-ui, -apple-system, sans-serif;
+  --isc-font-mono: "Fira Code Variable", "Fira Code", ui-monospace, monospace;
+  --isc-text-primary: #0a1a2f;
+  --isc-text-secondary: #555;
+  --isc-text-muted: #6b7280;
+  --isc-bg-page: #fcfbf8;
+  --isc-bg-white: #ffffff;
+  --isc-bg-secondary: #fbfaf7;
+  --isc-bg-meta: #f5f3ec;
+  --isc-border-default: #d1cfc6;
+  --isc-border-strong: #e5e3da;
+  --isc-glass: rgba(255, 255, 255, 0.72);
+
+  /* app tokens */
+  --bg: #fafafa;
+  --bg-image: none;
+  --bg-size: auto;
+  --ok: #98c7bf;
+  --degraded: #c9a227;
+  --outage: #c4506c;
+  --maintenance: #a890c0;
+  --nodata: #e6ebed;
+
+  /* shape and effects */
+  --radius-card: 10px;
+  --radius-pill: 4px;
+  --radius-sw: 2px;
+  --radius-tip: 8px;
+  --radius-round: 999px;
+  --h1-shadow: none;
+  --h1-weight: 500;
+
+  /* aliases: redeclared on every [data-palette] so they follow its tokens */
+  --surface: var(--isc-bg-white);
+  --ink: var(--isc-text-primary);
+  --muted: var(--isc-text-muted);
+  --rule: var(--isc-border-default);
+  --font-body: var(--isc-font-sans);
+  --font-mono: var(--isc-font-mono);
+  --gutter: var(--isc-page-padding-x);
+}
+
+:root[data-theme="dark"],
+:root[data-theme="dark"] [data-palette] {
+  --accent-ink: var(--ink-d);
+  --link: var(--link-d);
+
+  --isc-text-primary: #f3f4f6;
+  --isc-text-secondary: #a8acb3;
+  --isc-text-muted: #8e949e;
+  --isc-bg-page: #0e0e10;
+  --isc-bg-white: #16161a;
+  --isc-bg-secondary: #1a1a1d;
+  --isc-bg-meta: #0e0e10;
+  --isc-border-default: #2a2a2e;
+  --isc-border-strong: #3a3a40;
+  --isc-glass: rgba(22, 22, 26, 0.72);
+
+  --bg: #0e0e10;
+  --ok: #7fb8ae;
+  --degraded: #d9b53f;
+  --outage: #d2657f;
+  --maintenance: #a890c0;
+  --nodata: #24313a;
+}
+
+/* No script, system in dark mode: index.html normally sets data-theme. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --accent-ink: var(--ink-d);
+    --link: var(--link-d);
+    --bg: #0e0e10;
+    --ok: #7fb8ae;
+    --degraded: #d9b53f;
+    --outage: #d2657f;
+    --nodata: #24313a;
+  }
+}
+
+/* ════════════ 2. Orientations ════════════
+   One official petal colour each (--tint). --ink-l / --ink-d are the
+   high-contrast text variants of the same petal, as in the hub's tokens.js
+   (chipText / chipTextDark). Everything else is mixed from those. */
+
+[data-palette="securite"] {
+  --tint: rgb(226, 171, 186);
+  --ink-l: #6b344b;
+  --ink-d: #dc9aaa;
+}
+
+[data-palette="embarque"] {
+  --tint: rgb(152, 199, 191);
+  --ink-l: #2c5a50;
+  --ink-d: #7bbfb4;
+}
+
+[data-palette="reseaux"] {
+  --tint: rgb(168, 144, 192);
+  --ink-l: #4e3f60;
+  --ink-d: #c4aadc;
+}
+
+[data-palette="logiciel"] {
+  --tint: rgb(140, 198, 230);
+  --ink-l: #2d5c7e;
+  --ink-d: #80c0dc;
+}
+
+[data-palette="donnees"] {
+  --tint: rgb(247, 241, 159);
+  --ink-l: #6e5810;
+  --ink-d: #d4ba3a;
+}
+
+:is([data-palette="securite"], [data-palette="embarque"], [data-palette="reseaux"], [data-palette="logiciel"], [data-palette="donnees"]) {
+  --accent: var(--tint);
+  --link: var(--ink-l);
+  --isc-bg-page: color-mix(in srgb, var(--tint) 12%, #fff);
+  --bg: var(--isc-bg-page);
+  --isc-bg-white: color-mix(in srgb, var(--tint) 3%, #fff);
+  --isc-bg-secondary: color-mix(in srgb, var(--tint) 18%, #fff);
+  --isc-bg-meta: var(--isc-bg-secondary);
+  --isc-border-default: color-mix(in srgb, var(--tint) 45%, #d1cfc6);
+  --isc-border-strong: color-mix(in srgb, var(--tint) 45%, #e5e3da);
+  --isc-text-primary: color-mix(in srgb, var(--ink-l) 35%, #0a1a2f);
+  --isc-text-secondary: color-mix(in srgb, var(--ink-l) 40%, #444);
+  --isc-text-muted: color-mix(in srgb, var(--ink-l) 45%, #5f6672);
+  --isc-glass: color-mix(in srgb, var(--isc-bg-white) 72%, transparent);
+}
+
+:root[data-theme="dark"]:is([data-palette="securite"], [data-palette="embarque"], [data-palette="reseaux"], [data-palette="logiciel"], [data-palette="donnees"]),
+:root[data-theme="dark"] :is([data-palette="securite"], [data-palette="embarque"], [data-palette="reseaux"], [data-palette="logiciel"], [data-palette="donnees"]) {
+  --link: var(--ink-d);
+  --isc-bg-page: color-mix(in srgb, var(--tint) 6%, #0e0e10);
+  --bg: var(--isc-bg-page);
+  --isc-bg-white: color-mix(in srgb, var(--tint) 10%, #16161a);
+  --isc-bg-secondary: color-mix(in srgb, var(--tint) 8%, #1a1a1d);
+  --isc-bg-meta: var(--isc-bg-page);
+  --isc-border-default: color-mix(in srgb, var(--tint) 18%, #2a2a2e);
+  --isc-border-strong: color-mix(in srgb, var(--tint) 22%, #3a3a40);
+  --isc-text-primary: color-mix(in srgb, var(--tint) 14%, #f3f4f6);
+  --isc-text-secondary: color-mix(in srgb, var(--tint) 18%, #a8acb3);
+  --isc-text-muted: color-mix(in srgb, var(--tint) 22%, #8e949e);
+  --isc-glass: color-mix(in srgb, var(--isc-bg-white) 72%, transparent);
+}
+
+/* ════════════ 3. Accessibility and screens ════════════ */
+
+/* High contrast: black on white (or the reverse), solid rules, status colours
+   pushed until each one reaches 4.5:1 against the page. */
+[data-palette="contraste"] {
+  --ink-l: #5a1f38;
+  --ink-d: #f2c4d0;
+  --link: #000;
+  --isc-text-primary: #000;
+  --isc-text-secondary: #1a1a1a;
+  --isc-text-muted: #3a3a3a;
+  --isc-bg-page: #fff;
+  --bg: #fff;
+  --isc-bg-white: #fff;
+  --isc-bg-secondary: #f2f2f2;
+  --isc-bg-meta: #f2f2f2;
+  --isc-border-default: #1a1a1a;
+  --isc-border-strong: #1a1a1a;
+  --isc-glass: #fff;
+  --ok: #1f7a6b;
+  --degraded: #8a6a00;
+  --outage: #b3123f;
+  --maintenance: #6a4a94;
+  --nodata: #bdbdbd;
+  --h1-weight: 650;
+}
+
+:root[data-theme="dark"][data-palette="contraste"],
+:root[data-theme="dark"] [data-palette="contraste"] {
+  --link: #fff;
+  --isc-text-primary: #fff;
+  --isc-text-secondary: #f0f0f0;
+  --isc-text-muted: #d0d0d0;
+  --isc-bg-page: #000;
+  --bg: #000;
+  --isc-bg-white: #000;
+  --isc-bg-secondary: #0d0d0d;
+  --isc-bg-meta: #0d0d0d;
+  --isc-border-default: #e6e6e6;
+  --isc-border-strong: #fff;
+  --isc-glass: #000;
+  --ok: #7fe0cf;
+  --degraded: #ffd84d;
+  --outage: #ff7a98;
+  --maintenance: #c9aaf0;
+  --nodata: #4a4a4a;
+}
+
+/* E-paper: for an e-ink panel (wall display, reader). No colour at all, so the
+   state is carried by the grey level: the darker the cell, the worse the day.
+   No motion either, an e-ink panel ghosts on every intermediate frame. */
+[data-palette="epaper"] {
+  --accent: #000;
+  --ink-l: #000;
+  --ink-d: #fff;
+  --link: #000;
+  --isc-text-primary: #000;
+  --isc-text-secondary: #000;
+  --isc-text-muted: #333;
+  --isc-bg-page: #fff;
+  --bg: #fff;
+  --isc-bg-white: #fff;
+  --isc-bg-secondary: #fff;
+  --isc-bg-meta: #fff;
+  --isc-border-default: #000;
+  --isc-border-strong: #000;
+  --isc-glass: #fff;
+  --nodata: #e2e2e2;
+  --ok: #a8a8a8;
+  --maintenance: #787878;
+  --degraded: #484848;
+  --outage: #000;
+  --radius-card: 0;
+  --radius-pill: 0;
+  --radius-sw: 0;
+  --radius-tip: 0;
+  --radius-round: 0px;
+  --h1-weight: 650;
+}
+
+:root[data-theme="dark"][data-palette="epaper"],
+:root[data-theme="dark"] [data-palette="epaper"] {
+  --accent: #fff;
+  --link: #fff;
+  --isc-text-primary: #fff;
+  --isc-text-secondary: #fff;
+  --isc-text-muted: #ccc;
+  --isc-bg-page: #000;
+  --bg: #000;
+  --isc-bg-white: #000;
+  --isc-bg-secondary: #000;
+  --isc-bg-meta: #000;
+  --isc-border-default: #fff;
+  --isc-border-strong: #fff;
+  --isc-glass: #000;
+  --nodata: #1e1e1e;
+  --ok: #5a5a5a;
+  --maintenance: #888;
+  --degraded: #b8b8b8;
+  --outage: #fff;
+}
+
+:root[data-palette="epaper"] *,
+:root[data-palette="epaper"] *::before,
+:root[data-palette="epaper"] *::after {
+  animation: none !important;
+  transition: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ════════════ 4. Improbable ════════════
+   Deliberately outside the petal palette: these are easter eggs, the fleet's
+   "accent = petal" rule holds for the default and the orientation palettes. */
+
+/* Terminal: phosphor green, everything monospace, square corners. */
+[data-palette="terminal"] {
+  --accent: rgb(152, 199, 191);
+  --ink-l: #1f5a45;
+  --ink-d: #98c7bf;
+  --link: #1f5a45;
+  --isc-font-sans: var(--isc-font-mono);
+  --isc-text-primary: #10261b;
+  --isc-text-secondary: #2f4a3b;
+  --isc-text-muted: #4f6557;
+  --isc-bg-page: #f3f6f1;
+  --bg: #f3f6f1;
+  --isc-bg-white: #fbfdf9;
+  --isc-bg-secondary: #e9eee6;
+  --isc-bg-meta: #e9eee6;
+  --isc-border-default: #b9c7b8;
+  --isc-border-strong: #cfd9cd;
+  --isc-glass: #fbfdf9;
+  --nodata: #dfe6dd;
+  --radius-card: 0;
+  --radius-pill: 0;
+  --radius-sw: 0;
+  --radius-tip: 0;
+  --radius-round: 0px;
+}
+
+:root[data-theme="dark"][data-palette="terminal"],
+:root[data-theme="dark"] [data-palette="terminal"] {
+  --link: #98c7bf;
+  --isc-text-primary: #b9e8d2;
+  --isc-text-secondary: #8fc7ad;
+  --isc-text-muted: #6fa58c;
+  --isc-bg-page: #050a07;
+  --bg: #050a07;
+  --isc-bg-white: #0a120d;
+  --isc-bg-secondary: #0c1610;
+  --isc-bg-meta: #050a07;
+  --isc-border-default: #1f3a2c;
+  --isc-border-strong: #2c5240;
+  --isc-glass: #0a120d;
+  --nodata: #14241b;
+}
+
+/* Console 8 bits: the four olive shades of a 1989 handheld LCD. Like e-paper,
+   the state is a shade: the further from the background, the worse. */
+[data-palette="console"] {
+  --accent: #306230;
+  --ink-l: #0f380f;
+  --ink-d: #9bbc0f;
+  --link: #0f380f;
+  --isc-font-sans: var(--isc-font-mono);
+  --isc-text-primary: #0f380f;
+  --isc-text-secondary: #0f380f;
+  --isc-text-muted: #1f4a1f;
+  --isc-bg-page: #9bbc0f;
+  --bg: #9bbc0f;
+  --isc-bg-white: #a6c51c;
+  --isc-bg-secondary: #8bac0f;
+  --isc-bg-meta: #8bac0f;
+  --isc-border-default: #306230;
+  --isc-border-strong: #306230;
+  --isc-glass: #a6c51c;
+  --nodata: #8bac0f;
+  --ok: #5f8f1a;
+  --maintenance: #306230;
+  --degraded: #1d4a1d;
+  --outage: #0f380f;
+  --radius-card: 0;
+  --radius-pill: 0;
+  --radius-sw: 0;
+  --radius-tip: 0;
+  --radius-round: 0px;
+  --h1-weight: 650;
+  /* the pixel grid of the panel */
+  --bg-image: linear-gradient(rgba(15, 56, 15, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 56, 15, 0.07) 1px, transparent 1px);
+  --bg-size: 4px 4px;
+}
+
+:root[data-theme="dark"][data-palette="console"],
+:root[data-theme="dark"] [data-palette="console"] {
+  --accent: #8bac0f;
+  --link: #9bbc0f;
+  --isc-text-primary: #9bbc0f;
+  --isc-text-secondary: #9bbc0f;
+  --isc-text-muted: #8bac0f;
+  --isc-bg-page: #0f380f;
+  --bg: #0f380f;
+  --isc-bg-white: #144214;
+  --isc-bg-secondary: #0c2e0c;
+  --isc-bg-meta: #0c2e0c;
+  --isc-border-default: #306230;
+  --isc-border-strong: #4a7f2a;
+  --isc-glass: #144214;
+  --nodata: #1c4a1c;
+  --ok: #3f7a25;
+  --maintenance: #6f9a1a;
+  --degraded: #9bbc0f;
+  --outage: #e0f0a0;
+  --bg-image: linear-gradient(rgba(155, 188, 15, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(155, 188, 15, 0.05) 1px, transparent 1px);
+}
+
+/* Vidéotex: the eight saturated colours of a 1980s videotex terminal. */
+[data-palette="videotex"] {
+  --accent: #008a00;
+  --ink-l: #a8006a;
+  --ink-d: #ffff00;
+  --link: #0000c0;
+  --isc-font-sans: var(--isc-font-mono);
+  --isc-text-primary: #000;
+  --isc-text-secondary: #000;
+  --isc-text-muted: #0000c0;
+  --isc-bg-page: #fff;
+  --bg: #fff;
+  --isc-bg-white: #fff;
+  --isc-bg-secondary: #fff;
+  --isc-bg-meta: #fff;
+  --isc-border-default: #0000c0;
+  --isc-border-strong: #0000c0;
+  --isc-glass: #fff;
+  --ok: #008a00;
+  --degraded: #a87f00;
+  --outage: #d00000;
+  --maintenance: #b000b0;
+  --nodata: #d8d8d8;
+  --radius-card: 0;
+  --radius-pill: 0;
+  --radius-sw: 0;
+  --radius-tip: 0;
+  --radius-round: 0px;
+  --h1-weight: 650;
+}
+
+:root[data-theme="dark"][data-palette="videotex"],
+:root[data-theme="dark"] [data-palette="videotex"] {
+  --accent: #00ff00;
+  --link: #00ffff;
+  --isc-text-primary: #fff;
+  --isc-text-secondary: #fff;
+  --isc-text-muted: #00ffff;
+  --isc-bg-page: #000;
+  --bg: #000;
+  --isc-bg-white: #000;
+  --isc-bg-secondary: #000;
+  --isc-bg-meta: #000;
+  --isc-border-default: #4d4dff;
+  --isc-border-strong: #4d4dff;
+  --isc-glass: #000;
+  --ok: #00ff00;
+  --degraded: #ffff00;
+  --outage: #ff0000;
+  --maintenance: #ff00ff;
+  --nodata: #333;
+}
+
+/* Plan: blue lines on white tracing paper by day, cyanotype by night. */
+[data-palette="plan"] {
+  --accent: #2a5ea8;
+  --ink-l: #153e75;
+  --ink-d: #fff;
+  --link: #1d4f9a;
+  --isc-text-primary: #153e75;
+  --isc-text-secondary: #2a4f85;
+  --isc-text-muted: #3d5f94;
+  --isc-bg-page: #f7f9fc;
+  --bg: #f7f9fc;
+  --isc-bg-white: #fff;
+  --isc-bg-secondary: #eef3fa;
+  --isc-bg-meta: #eef3fa;
+  --isc-border-default: #9db3d6;
+  --isc-border-strong: #c3d1e8;
+  --isc-glass: #fff;
+  --ok: #4fa394;
+  --degraded: #b58a12;
+  --outage: #c4506c;
+  --maintenance: #8a6fb0;
+  --nodata: #dfe7f2;
+  --radius-card: 2px;
+  --radius-pill: 0;
+  --radius-sw: 0;
+  --radius-tip: 2px;
+  --bg-image: linear-gradient(rgba(42, 94, 168, 0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(42, 94, 168, 0.09) 1px, transparent 1px);
+  --bg-size: 24px 24px;
+}
+
+:root[data-theme="dark"][data-palette="plan"],
+:root[data-theme="dark"] [data-palette="plan"] {
+  --accent: #f2f7ff;
+  --link: #fff;
+  --isc-text-primary: #f2f7ff;
+  --isc-text-secondary: #d5e3f7;
+  --isc-text-muted: #b4c9e8;
+  --isc-bg-page: #123a6b;
+  --bg: #123a6b;
+  --isc-bg-white: #164680;
+  --isc-bg-secondary: #0f3260;
+  --isc-bg-meta: #0f3260;
+  --isc-border-default: #6f93c2;
+  --isc-border-strong: #9db8da;
+  --isc-glass: #164680;
+  --ok: #9fe0d2;
+  --degraded: #ffe27a;
+  --outage: #ff9bb0;
+  --maintenance: #d3bdf0;
+  --nodata: #2a5590;
+  --bg-image: linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+}
+
+/* Tableau: whiteboard and markers by day, blackboard and chalk by night.
+   The handwriting comes from whatever the system has; no font is shipped. */
+[data-palette="tableau"] {
+  --accent: #1f5fbf;
+  --ink-l: #1a4fa0;
+  --ink-d: #f7f19f;
+  --link: #1a4fa0;
+  --isc-font-sans: "Chalkboard SE", "Comic Sans MS", "Comic Neue", "Bradley Hand", cursive;
+  --isc-text-primary: #1c2330;
+  --isc-text-secondary: #3a4352;
+  --isc-text-muted: #555e6e;
+  --isc-bg-page: #fbfbf9;
+  --bg: #fbfbf9;
+  --isc-bg-white: #fff;
+  --isc-bg-secondary: #f1f2f0;
+  --isc-bg-meta: #f1f2f0;
+  --isc-border-default: #c9ccd1;
+  --isc-border-strong: #dfe1e4;
+  --isc-glass: #fff;
+  --ok: #1e9a6a;
+  --degraded: #c98a00;
+  --outage: #d0283c;
+  --maintenance: #7a4fc0;
+  --nodata: #e3e6ea;
+  --radius-card: 14px 10px 16px 9px;
+}
+
+:root[data-theme="dark"][data-palette="tableau"],
+:root[data-theme="dark"] [data-palette="tableau"] {
+  --accent: #f7f19f;
+  --link: #f7f19f;
+  --isc-text-primary: #f4f1e6;
+  --isc-text-secondary: #dcdccf;
+  --isc-text-muted: #c5cdc2;
+  --isc-bg-page: #22372e;
+  --bg: #22372e;
+  --isc-bg-white: #29423a;
+  --isc-bg-secondary: #1d3028;
+  --isc-bg-meta: #1d3028;
+  --isc-border-default: #5d7a6e;
+  --isc-border-strong: #7d978c;
+  --isc-glass: #29423a;
+  --ok: #a8e0c8;
+  --degraded: #f7e27a;
+  --outage: #f5a3b5;
+  --maintenance: #cdb6ea;
+  --nodata: #35504a;
+}
+
+/* Néon: pastel vaporwave by day, synthwave tubes by night. */
+[data-palette="neon"] {
+  --accent: #ff8fe0;
+  --ink-l: #a3157f;
+  --ink-d: #ff7de3;
+  --link: #0b7f93;
+  --isc-text-primary: #2b1650;
+  --isc-text-secondary: #4a2f75;
+  --isc-text-muted: #6a4f8f;
+  --isc-bg-page: #fdf3fb;
+  --bg: #fdf3fb;
+  --isc-bg-white: #fff;
+  --isc-bg-secondary: #f6e6f7;
+  --isc-bg-meta: #f6e6f7;
+  --isc-border-default: #e3b9e6;
+  --isc-border-strong: #edd0ef;
+  --isc-glass: rgba(255, 255, 255, 0.72);
+  --ok: #34b89a;
+  --degraded: #c9a227;
+  --outage: #e0457a;
+  --maintenance: #9a6fe0;
+  --nodata: #efe0f2;
+  --radius-card: 14px;
+  --radius-pill: 999px;
+  --bg-image: linear-gradient(180deg, rgba(140, 220, 255, 0.28), transparent 420px);
+}
+
+:root[data-theme="dark"][data-palette="neon"],
+:root[data-theme="dark"] [data-palette="neon"] {
+  --accent: #ff4fd8;
+  --link: #5ff3ff;
+  --isc-text-primary: #f3eaff;
+  --isc-text-secondary: #d3c3f2;
+  --isc-text-muted: #b3a2d9;
+  --isc-bg-page: #120a24;
+  --bg: #120a24;
+  --isc-bg-white: #1a1033;
+  --isc-bg-secondary: #0e071c;
+  --isc-bg-meta: #0e071c;
+  --isc-border-default: #3d2a6b;
+  --isc-border-strong: #5a3fa0;
+  --isc-glass: rgba(26, 16, 51, 0.72);
+  --ok: #3df5c8;
+  --degraded: #ffe45c;
+  --outage: #ff4f7b;
+  --maintenance: #b78bff;
+  --nodata: #2a1c4d;
+  --h1-shadow: 0 0 18px rgba(255, 79, 216, 0.55), 0 0 2px rgba(255, 79, 216, 0.9);
+  --bg-image: linear-gradient(180deg, rgba(255, 79, 216, 0.16), transparent 420px);
+}
