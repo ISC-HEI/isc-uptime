@@ -1,6 +1,7 @@
 import "@fontsource-variable/dm-sans";
 import "@fontsource-variable/fira-code";
 import "./isc-design.css";
+import "./themes.css";
 import "./style.css";
 import snapshot from "./data/status.json";
 import outageDemo from "./data/fixtures/outage.json";
@@ -8,11 +9,13 @@ import maintenanceDemo from "./data/fixtures/maintenance.json";
 import manyIncidentsDemo from "./data/fixtures/manyincidents.json";
 import hasMoreTrueDemo from "./data/fixtures/hasmoretrue.json";
 import withoutDataDemo from "./data/fixtures/withoutdata.json";
-import { openDetails, renderPage } from "./render";
-import { THEME_TOOLTIP, applyTheme, cycleTheme } from "./theme";
+import { DEFAULT_PALETTE, isPaletteId } from "./palettes";
+import { openDetails, renderPage, renderThemeDialog } from "./render";
+import { THEME_TOOLTIP, applyPalette, applyTheme, currentPalette, cycleTheme } from "./theme";
 import type { StatusPayload } from "./types";
 
 applyTheme();
+applyPalette();
 
 const base = (import.meta.env.VITE_STATUS_BASE as string | undefined)?.replace(/\/$/, "") ?? "";
 // Live fetches go through the CORS relay when configured (relay/), else straight upstream.
@@ -149,70 +152,47 @@ root.addEventListener("keydown", (e) => {
   }
 });
 
-const DEFAULT_LIGHT = "rgb(226, 171, 186)"; // default color
-let heartClicks = 0; // number of clicks on the heart
-let heartTimer: number; // timer for reseting the click count
+/* Theme menu: three quick clicks on the footer heart open it. The dialog is
+   appended to <body>, outside #app, because #app is re-rendered on every
+   refresh and would close it under the reader's hands. */
+document.body.insertAdjacentHTML("beforeend", renderThemeDialog(currentPalette()));
+const themeMenu = document.getElementById("theme-menu") as HTMLDialogElement;
 
-// check if a color was saved in localStorage
-const savedColor = localStorage.getItem("secretAccent");
-if (savedColor) {
-  // apply to the css variable
-  document.documentElement.style.setProperty("--secret-accent", savedColor);
-}
+const HEART_CLICKS = 3;
+const HEART_WINDOW_MS = 800; // longest pause allowed between two clicks
+let heartClicks = 0;
+let heartTimer = 0;
 
-// try to check the matching rady button
-const initialRadio = document.querySelector<HTMLInputElement>(
-  `input[name="couleur"][value="${savedColor || DEFAULT_LIGHT}"]`
-);
-if (initialRadio) initialRadio.checked = true;
+root.addEventListener("click", (e) => {
+  if (!(e.target as Element).closest('[data-action="secret-heart"]')) return;
+  window.clearTimeout(heartTimer);
+  heartClicks++;
+  if (heartClicks < HEART_CLICKS) {
+    heartTimer = window.setTimeout(() => (heartClicks = 0), HEART_WINDOW_MS);
+    return;
+  }
+  heartClicks = 0;
+  themeMenu.showModal();
+});
 
-document.addEventListener("click", (e) => {
+/* A palette applies as soon as its card is picked: the page behind the menu
+   is the real preview. */
+themeMenu.addEventListener("change", (e) => {
+  const input = e.target as HTMLInputElement;
+  if (input.name === "palette" && isPaletteId(input.value)) applyPalette(input.value);
+});
+
+themeMenu.addEventListener("click", (e) => {
   const target = e.target as Element;
-
-  // check if the user clicked on the heart 
-  if (target.closest('[data-action="secret-heart"]')) {
-    heartClicks++;
-    window.clearTimeout(heartTimer);
-
-    // open/close the menu after 3 clicks
-    if (heartClicks === 3) {
-      const menu = document.getElementById("secret-color-menu") as HTMLDialogElement | null;
-      if (menu) menu.open ? menu.close() : menu.showModal();
-      heartClicks = 0;
-    } else {
-      heartTimer = window.setTimeout(() => (heartClicks = 0), 800);
-    }
-  }
-
-  if (target.closest("#secret-color-close") || target.id === "secret-color-menu") {
-    const menu = document.getElementById("secret-color-menu") as HTMLDialogElement | null;
-    if (menu) menu.close();
-  }
-
-  // Réinitialisation : on supprime la variable pour revenir aux couleurs par défaut (ACCENT_LIGHT / ACCENT_DARK)
-  if (target.closest("#secret-color-reset")) {
-    localStorage.removeItem("secretAccent");
-    document.documentElement.style.removeProperty("--secret-accent");
-
-    const defaultRadio = document.querySelector<HTMLInputElement>(
-      `input[name="couleur"][value="${DEFAULT_LIGHT}"]`
-    );
-    if (defaultRadio) defaultRadio.checked = true;
+  // The form covers the whole dialog box, so a click that lands on the
+  // <dialog> itself can only be on the backdrop.
+  if (target === themeMenu) themeMenu.close();
+  if (target.closest('[data-action="palette-reset"]')) {
+    applyPalette(DEFAULT_PALETTE);
+    const radio = themeMenu.querySelector<HTMLInputElement>(`input[name="palette"][value="${DEFAULT_PALETTE}"]`);
+    if (radio) radio.checked = true;
   }
 });
-
-document.addEventListener("change", (e) => {
-  const target = e.target as HTMLInputElement;
-  if (target.name === "couleur") {
-    localStorage.setItem("secretAccent", target.value);
-    document.documentElement.style.setProperty("--secret-accent", target.value);
-  }
-});
-
-const savedAccent = localStorage.getItem('secretAccent');
-if (savedAccent) {
-  document.documentElement.style.setProperty('--secret-accent', savedAccent);
-}
 
 // Without the relay the public API sends no CORS headers, so this fails
 // silently on GitHub Pages and the snapshot stays.

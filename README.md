@@ -25,6 +25,7 @@ small CORS relay. The page is in French.
 - **Uptime percentage** — per service and overall, computed from the incident timeline over the observed window
 - **Incidents and maintenance** — active, recent and planned, with Swiss time and durations
 - **Light and dark theme** — two-way toggle persisted under `isc.theme`, the same key as the ISC Hub
+- **Themes** — fourteen palettes (the five orientations, high contrast, e-paper and a few improbable ones), each in light and dark; three clicks on the footer heart open the menu
 - **Snapshot first, live after** — the page paints the snapshot embedded at build time, then polls the relay every 30 s
 
 ## Quick Start
@@ -117,6 +118,22 @@ The app is not Vue, so it cannot import the components of `@isc-hei/design`. It 
 package's tokens and the CSS of the ported components in `src/isc-design.css` (ISCHeader, Footer,
 `.isc-fab`, `[data-tooltip]`) and renders the same markup from `src/render.ts`.
 When the package changes upstream, re-vendor those blocks by hand.
+
+### Themes
+
+The look is set by two attributes on `<html>`: `data-theme` (light or dark) and `data-palette`
+(the colour theme, stored under `isc.palette`). A palette is a set of CSS custom properties,
+written twice in `src/themes.css`, once per mode. `src/style.css` only uses those tokens.
+
+To add a palette:
+
+1. add an entry to `PALETTES` in `src/palettes.ts` (id, label, hint, group);
+2. write its two blocks in `src/themes.css`, starting from a copy of an existing pair;
+3. run `bun test` (it fails if a block is missing) and look at it in both modes, with
+   `?demo=manyincidents` to see every status colour.
+
+The four status colours must stay tellable apart in every palette. The default and the five
+orientation palettes keep the official petal colours; the "improbable" ones are free.
 
 ## Project layout
 

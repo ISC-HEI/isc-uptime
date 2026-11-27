@@ -7,13 +7,16 @@
     <meta name="description" content="Disponibilité des services de la filière ISC (HES-SO Valais-Wallis) sur les 90 derniers jours." />
     <meta name="robots" content="noindex" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <!-- Theme before first paint: same key and fallback as useTheme() in @isc-hei/design. -->
+    <!-- Mode and palette before first paint. Mode: same key and fallback as
+         useTheme() in @isc-hei/design. Palette: see src/palettes.ts. -->
     <script>
       (function () {
         try {
           var t = localStorage.getItem("isc.theme");
           if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
           document.documentElement.setAttribute("data-theme", t);
+          var p = localStorage.getItem("isc.palette");
+          if (p && /^[a-z]+$/.test(p)) document.documentElement.setAttribute("data-palette", p);
         } catch (e) {}
       })();
     </script>

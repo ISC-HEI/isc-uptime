@@ -1,6 +1,14 @@
-// Two-way light/dark theme, identical to useTheme() in @isc-hei/design:
-// data-theme on <html>, persisted under localStorage "isc.theme" (shared with
-// the hub), system preference only as the first-visit default.
+// Two independent settings, both carried by attributes on <html>:
+//
+// - the light/dark mode, identical to useTheme() in @isc-hei/design:
+//   data-theme, persisted under localStorage "isc.theme", system preference
+//   only as the first-visit default;
+// - the palette (colour theme), specific to this page: data-palette,
+//   persisted under "isc.palette". See palettes.ts and themes.css.
+//
+// index.html sets both attributes before the first paint; keep it in sync.
+import { DEFAULT_PALETTE, LEGACY_ACCENT_KEY, PALETTE_KEY, resolvePalette, type PaletteId } from "./palettes";
+
 const KEY = "isc.theme";
 export type Mode = "light" | "dark";
 
@@ -39,3 +47,32 @@ export const THEME_TOOLTIP: Record<Mode, string> = {
   light: "Passer en mode sombre",
   dark: "Passer en mode clair",
 };
+
+/* ---------- palette ---------- */
+
+function initialPalette(): PaletteId {
+  try {
+    return resolvePalette(localStorage.getItem(PALETTE_KEY), localStorage.getItem(LEGACY_ACCENT_KEY));
+  } catch {
+    return DEFAULT_PALETTE;
+  }
+}
+
+let palette: PaletteId = initialPalette();
+
+export function currentPalette(): PaletteId {
+  return palette;
+}
+
+export function applyPalette(next: PaletteId = palette) {
+  palette = next;
+  document.documentElement.setAttribute("data-palette", palette);
+  try {
+    // The default is stored as "no preference", so it follows a future change of default.
+    if (palette === DEFAULT_PALETTE) localStorage.removeItem(PALETTE_KEY);
+    else localStorage.setItem(PALETTE_KEY, palette);
+    localStorage.removeItem(LEGACY_ACCENT_KEY);
+  } catch {
+    /* storage blocked */
+  }
+}
