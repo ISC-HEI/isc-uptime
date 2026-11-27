@@ -81,10 +81,46 @@ describe("componentUptime", () => {
     expect(u?.pct).toBe(100);
   });
 
+  test("exclue le temps de l'incident commencé avant la période d'observation", () => {
+    const u = componentUptime(component(10), [incident(300, 120)], NOW);
+    expect(u?.pct).toBe(50); // Comme un incident à démarrer avant la fenêtre de données
+  });
+
   // Ce test à d'abord échouer
   test("ne compte pas deux fois les périodes d'incidents qui se chevauchent", () => {
+    // 100 * (1 - 36 / 240) = 100 * (1 - 0.15) = 85%
     const u = componentUptime(component(10), [incident(48, 24), incident(36, 12)], NOW);
     expect(u?.pct).toBe(85)
+  });
+
+  test("vérifie que le .sort est correctement effectué et que le résultat fonctionne également", () => {
+    // 100 * (1 - 36 / 240) = 100 * (1 - 0.15) = 85%
+    const u = componentUptime(component(10), [incident(36, 12), incident(48, 24)], NOW);
+    expect(u?.pct).toBe(85)
+  });
+
+  test("enchaîne 3 incidents dont des dépassements et un incdient en cours", () => {
+    // 100 * (1 - 48 / 240) = 100 * (1 - 0.20) = 80%
+    const u = componentUptime(component(10), [incident(48, 30), incident(36, 18), incident(24, null)], NOW);
+    expect(u?.pct).toBe(80);
+  });
+
+  test("calcule correctement des incidents qui se chevauchent et d'autres non", () => {
+    // 100 * (1 - 60 / 240) = 100 * (1 - 0.25) = 75%
+    const u = componentUptime(component(10), [incident(96, 72), incident(48, 24), incident(36, 12)], NOW);
+    expect(u?.pct).toBe(75);
+  });
+
+  test("ignore les chevauchements d'incidents avec d'autres composants", () => {
+    // 100 * (1 - 24 / 240) = 100 * (1 - 0.10) = 90%
+    const u = componentUptime(component(10), [incident(48, 24), incident(60, 12, "another-service")], NOW);
+    expect(u?.pct).toBe(90);
+  });
+
+  test("gère les incidents qui se chevauchent aux limites de la fenêtre d'observation", () => {
+    // 100 * (1 - 84 / 240) = 100 * (1 - 0.35) = 65%
+    const u = componentUptime(component(10), [incident(300, 200), incident(220, 180), incident(24, null)], NOW);
+    expect(u?.pct).toBeCloseTo(65, 6);
   });
 });
 
