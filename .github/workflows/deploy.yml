@@ -36,6 +36,11 @@ jobs:
       - run: bun run typecheck
       - run: bun test
       - run: bun run build
+      # The e-paper panel can show dist/trmnl.html or this image of it. A
+      # failure here must not hold back the status page itself.
+      - name: Render the e-paper image
+        continue-on-error: true
+        run: scripts/trmnl-png.sh
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
