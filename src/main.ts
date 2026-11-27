@@ -105,21 +105,6 @@ root.addEventListener("focusout", (e) => {
   }
 });
 
-root.addEventListener("pointerover", (e) => {
-  const cell = (e.target as Element).closest<SVGRectElement>("rect[data-tip]");
-  if (!cell) return;
-  const r = cell.getBoundingClientRect();
-  tip.textContent = cell.dataset.tip ?? "";
-  tip.hidden = false;
-  const w = tip.offsetWidth;
-  const x = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), window.innerWidth - w - 8);
-  tip.style.transform = `translate(${Math.round(x)}px, ${Math.round(r.bottom + 6)}px)`;
-});
-
-root.addEventListener("pointerout", (e) => {
-  if ((e.target as Element).closest("rect[data-tip]")) tip.hidden = true;
-});
-
 // A keyboard navigation for the 90-day history bars
 root.addEventListener("keydown", (e) => {
   // get the element currently focused by user 
