@@ -120,12 +120,17 @@
 /* ════════════ 2. Orientations ════════════
    One official petal colour each (--tint). --ink-l / --ink-d are the
    high-contrast text variants of the same petal, as in the hub's tokens.js
-   (chipText / chipTextDark). Everything else is mixed from those. */
+   (chipText / chipTextDark). Everything else is mixed from those.
+   The graph follows too: "operational" wears the petal, and whichever status
+   colour would then be too close to it moves away. "embarque" keeps the
+   default status colours, whose "operational" already is its petal. */
 
 [data-palette="securite"] {
   --tint: rgb(226, 171, 186);
   --ink-l: #6b344b;
   --ink-d: #dc9aaa;
+  --ok: #e2abba;
+  --outage: #8f1d3f; /* same hue as "ok": told apart by its depth */
 }
 
 [data-palette="embarque"] {
@@ -138,18 +143,23 @@
   --tint: rgb(168, 144, 192);
   --ink-l: #4e3f60;
   --ink-d: #c4aadc;
+  --ok: #a890c0;
+  --maintenance: #6fb0d6; /* lavender is taken by "ok" */
 }
 
 [data-palette="logiciel"] {
   --tint: rgb(140, 198, 230);
   --ink-l: #2d5c7e;
   --ink-d: #80c0dc;
+  --ok: #8cc6e6;
 }
 
 [data-palette="donnees"] {
   --tint: rgb(247, 241, 159);
   --ink-l: #6e5810;
   --ink-d: #d4ba3a;
+  --ok: #e3d55a;
+  --degraded: #d9822b; /* yellow is taken by "ok": orange instead */
 }
 
 :is([data-palette="securite"], [data-palette="embarque"], [data-palette="reseaux"], [data-palette="logiciel"], [data-palette="donnees"]) {
@@ -182,6 +192,30 @@
   --isc-text-secondary: color-mix(in srgb, var(--tint) 18%, #a8acb3);
   --isc-text-muted: color-mix(in srgb, var(--tint) 22%, #8e949e);
   --isc-glass: color-mix(in srgb, var(--isc-bg-white) 72%, transparent);
+}
+
+/* Status colours of the orientations, dark mode. */
+:root[data-theme="dark"][data-palette="securite"],
+:root[data-theme="dark"] [data-palette="securite"] {
+  --ok: #d99aac;
+  --outage: #ff4d6d;
+}
+
+:root[data-theme="dark"][data-palette="reseaux"],
+:root[data-theme="dark"] [data-palette="reseaux"] {
+  --ok: #b39ccb;
+  --maintenance: #80c0dc;
+}
+
+:root[data-theme="dark"][data-palette="logiciel"],
+:root[data-theme="dark"] [data-palette="logiciel"] {
+  --ok: #80c0dc;
+}
+
+:root[data-theme="dark"][data-palette="donnees"],
+:root[data-theme="dark"] [data-palette="donnees"] {
+  --ok: #d4ba3a;
+  --degraded: #f08a3c;
 }
 
 /* ════════════ 3. Accessibility and screens ════════════ */
@@ -318,6 +352,10 @@
   --isc-border-default: #b9c7b8;
   --isc-border-strong: #cfd9cd;
   --isc-glass: #fbfdf9;
+  --ok: #3f9a6a;
+  --degraded: #c98a00;
+  --outage: #c0392b;
+  --maintenance: #4f7fb5;
   --nodata: #dfe6dd;
   --radius-card: 0;
   --radius-pill: 0;
@@ -340,6 +378,10 @@
   --isc-border-default: #1f3a2c;
   --isc-border-strong: #2c5240;
   --isc-glass: #0a120d;
+  --ok: #3ddc84; /* green and amber phosphors */
+  --degraded: #ffb000;
+  --outage: #ff4d4d;
+  --maintenance: #6fa8dc;
   --nodata: #14241b;
 }
 
