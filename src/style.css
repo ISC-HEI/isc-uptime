@@ -621,7 +621,7 @@ h3.group {
 }
 
 .pill-phase.phase-resolved {
-  --pill-c: var(--ok 28%);
+  --pill-c: var(--ok);
   color: color-mix(in srgb, var(--ok) 60%, var(--ink));
 }
 
