@@ -809,6 +809,37 @@ button.isc-footer__heart::after {
   transform: translate(-50%, -50%);
 }
 
+/* The vendored pulse swings 23 % on a continuous sine, which reads as a
+   balloon being inflated. A heart beats twice, then rests: two short beats in
+   the first 40 % of the cycle, stillness after. Like the vendored keyframes,
+   these only ever scale DOWN from the size the SVG is drawn at, so the heart
+   stays crisp. */
+@media (prefers-reduced-motion: no-preference) {
+  button.isc-footer__heart {
+    animation: heart-beat 1.5s ease-out infinite;
+  }
+}
+
+@keyframes heart-beat {
+  0%,
+  42%,
+  100% {
+    transform: scale(0.84);
+  }
+
+  9% {
+    transform: scale(1);
+  }
+
+  19% {
+    transform: scale(0.88);
+  }
+
+  28% {
+    transform: scale(0.95);
+  }
+}
+
 /* ---------- theme menu ---------- */
 
 .theme-dialog {
