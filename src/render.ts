@@ -12,6 +12,7 @@ import {
   monthShort,
   overallHeadline,
   snapshotStamp,
+  outdatedData,
   time,
   visualState,
 } from "./format";
@@ -26,8 +27,16 @@ const HUB = "https://isc.hevs.ch/";
 const REPO = "https://github.com/ISC-HEI/isc-uptime";
 
 /* Petal accent for a cross-audience / admin tool (see isc-website skill table). */
-const ACCENT_LIGHT = "#e2abba";
+const ACCENT_LIGHT = "rgb(226, 171, 186)";
 const ACCENT_DARK = "#b1718d";
+
+const SECRET_COLORS = [
+  { id: 'opt1', value: 'rgb(226, 171, 186)', label: 'Rose ISC - Sécurité informatique' },
+  { id: 'opt2', value: 'rgb(152, 199, 191)', label: 'Vert ISC - Systèmes informatiques embarqués' },
+  { id: 'opt3', value: 'rgb(168, 144, 192)', label: 'Violet ISC - Réseaux et systèmes' },
+  { id: 'opt4', value: 'rgb(140, 198, 230)', label: 'Bleu ISC - Informatique logicielle' },
+  { id: 'opt5', value: 'rgb(247, 241, 159)', label: 'Jaune ISC - Ingénierie des données' },
+];
 
 /* Display order of the upstream groups: the services people actually use come
    first, the plumbing behind them last. Upstream only sorts components *within*
@@ -54,6 +63,7 @@ export interface RenderOptions {
 export function renderPage(data: StatusPayload, opts: RenderOptions): string {
   const state = visualState(data.overall.state);
   const generated = new Date(data.generated_at);
+  const age = outdatedData(data.generated_at, new Date())
   const incidents = dedupe([...data.active_incidents, ...data.recent_incidents]);
   const groups = orderedGroups(data.groups);
   const uptimes = new Map<string, Uptime | null>();
@@ -70,6 +80,7 @@ export function renderPage(data: StatusPayload, opts: RenderOptions): string {
         </p>
       </section>
 
+      ${age !== null ? renderOutdatedDataBanner(age) : ""}
       ${data.active_incidents.length ? renderActive(data.active_incidents, opts.base) : ""}
       ${data.active_maintenance.length ? renderMaintenanceBlock("Maintenance en cours", data.active_maintenance) : ""}
 
@@ -107,10 +118,16 @@ export function renderPage(data: StatusPayload, opts: RenderOptions): string {
 
 function renderHeader(base: string): string {
   const mode = currentMode();
+  const inDarkMode = mode === 'dark';
+  const accentTexte = `var(--secret-accent, ${inDarkMode ? ACCENT_LIGHT : ACCENT_DARK})`;
+
+  const surtitleCouleur = inDarkMode
+    ? accentTexte
+    : `color-mix(in srgb, ${accentTexte}, black 38%)`;
   return `
     <header class="isc-header">
       <div class="isc-header__main">
-        <div class="isc-header__bar" style="background:${ACCENT_LIGHT}"></div>
+        <div class="isc-header__bar" style="background:var(--secret-accent, ${ACCENT_LIGHT})"></div>
         <div class="isc-header__inner">
           <a href="${HUB}" class="isc-header__brand" data-tooltip="ISC Hub">
             <img src="${BASE_URL}isc-logo-black.svg" class="isc-header__full-logo isc-header__full-logo--light" alt="ISC">
@@ -118,7 +135,7 @@ function renderHeader(base: string): string {
           </a>
           <div class="isc-header__divider"></div>
           <div class="isc-header__titles">
-            <div class="isc-header__surtitle isc-mono-label" style="color:${ACCENT_DARK}">
+            <div class="isc-header__surtitle isc-mono-label" style="color:${surtitleCouleur}">
               <a href="${HUB}">ISC Hub</a><span class="isc-header__surtitle-sep" aria-hidden="true">/</span>Statut
             </div>
             <div class="isc-header__title">État des services</div>
@@ -148,19 +165,45 @@ function renderHeader(base: string): string {
 
 function renderFooter(base: string): string {
   const year = new Date().getFullYear();
+  const savedColor = typeof localStorage !== 'undefined' ? localStorage.getItem("secretAccent") : null;
+
+  const optionsHtml = SECRET_COLORS.map((opt) => {
+    const isChecked = savedColor === opt.value ? 'checked' : '';
+    return `
+      <input type="radio" id="${opt.id}" name="couleur" value="${opt.value}" ${isChecked}>
+      <label for="${opt.id}" style="--color: ${opt.value};">${opt.label}</label>
+    `;
+  }).join('');
+
   return `
     <footer class="isc-footer">
       <span class="isc-footer__note">
         Filière ISC, HES-SO Valais-Wallis · surveillance par <a href="${esc(base)}/status">uptimepage</a> · heures suisses
       </span>
       <span class="isc-footer__credit">
-        Made with <span class="isc-footer__heart" aria-hidden="true"><svg class="isc-footer__heart-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-6.7-4.35-9.33-8.07C.9 10.27 1.4 6.6 4.2 5.07c2.06-1.12 4.5-.45 5.92 1.2L12 8.05l1.88-1.78c1.42-1.65 3.86-2.32 5.92-1.2 2.8 1.53 3.3 5.2 1.53 7.86C18.7 16.65 12 21 12 21z"/></svg></span> — mui ${year}
+        Made with <button type="button" class="isc-footer__heart" data-action="secret-heart" aria-label="Ouvrir le menu de couleurs"><svg class="isc-footer__heart-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-6.7-4.35-9.33-8.07C.9 10.27 1.4 6.6 4.2 5.07c2.06-1.12 4.5-.45 5.92 1.2L12 8.05l1.88-1.78c1.42-1.65 3.86-2.32 5.92-1.2 2.8 1.53 3.3 5.2 1.53 7.86C18.7 16.65 12 21 12 21z"/></svg></button> — mui ${year}
       </span>
       <a class="isc-footer__gh" href="${REPO}" target="_blank" rel="noopener noreferrer" aria-label="Code source sur GitHub">
         <svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
         <span>github.com/ISC-HEI/isc-uptime</span>
       </a>
-    </footer>`;
+    </footer>
+    
+    <dialog id="secret-color-menu" class="secret-color-modal">
+      <div class="modal-content">
+        <h2>Choix des couleurs</h2>
+        <p>Sélectionne un thème de couleurs :</p>
+        
+        <div class="color-select">
+          ${optionsHtml}
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="secret-color-reset">Réinitialiser</button>
+          <button type="button" id="secret-color-close" aria-label="Fermer le menu">Fermer</button>
+        </div>
+      </div>
+    </dialog>`;
 }
 
 /* ---------- services ---------- */
@@ -169,7 +212,7 @@ function renderOverallUptime(u: Uptime, isUpperBound: boolean): string {
   const prefix = isUpperBound ? "≤ " : "";
 
   const tooltip = isUpperBound
-    ? `Borne supérieure (historique d'incidents connus), ${u.days} jour${u.days > 1 ? "s" : ""} observé${u.days > 1 ? "s" : ""}`
+    ? `Borne supérieure(historique d'incidents connus), ${u.days} jour${u.days > 1 ? "s" : ""} observé${u.days > 1 ? "s" : ""}`
     : `Moyenne des services, ${u.days} jour${u.days > 1 ? "s" : ""} observé${u.days > 1 ? "s" : ""}`;
 
   return `<p class="uptime-overall ${pctTone(u.pct)}"
@@ -221,18 +264,43 @@ function renderComponent(c: Component, generated: Date, u: Uptime | null, isUppe
 }
 
 function renderStrip(c: Component, generated: Date): string {
-  const n = 90;
-  const hist = c.history.slice(-n);
-  while (hist.length < n) hist.unshift("no_data");
+  const hist = c.history.slice(-90);
+  // On compte uniquement les jours qui ne sont pas "nodata"
+  const n = hist.filter((s) => visualState(s) !== "nodata").length;
+
+  // Préparation d'un dictionnaire vide pour regrouper les dates d'incident par type
+  const byState: Record<string, string[]> = {};
+
   const cells = hist
     .map((s, i) => {
       const v = visualState(s);
-      const d = dayAt(generated, n - 1 - i);
-      return `<rect class="${v}" x="${i * 4}" y="0" width="3" height="12" data-tip="${esc(day(d))} : ${STATE_LABEL[v]}"></rect>`;
+      const d = dayAt(generated, hist.length - 1 - i);
+      const label = `${day(d)} : ${STATE_LABEL[v]}`;
+
+      if (v !== "ok" && v !== "nodata") {
+        if (byState[v] === undefined) {
+          byState[v] = [];
+        }
+        // Correction : utiliser hist.length (et non n) pour ne pas décaler la date
+        byState[v].push(day(dayAt(generated, hist.length - 1 - i)));
+      }
+
+      const tabIndex = i === hist.length - 1 ? "0" : "-1";
+
+      return `<rect class="${v}" x="${i * 4}" y="0" width="3" height="12" tabindex="${tabIndex}" role="img" aria-label="${esc(label)}" data-tip="${esc(label)}"></rect>`;
     })
     .join("");
-  return `<svg class="strip" viewBox="0 0 ${n * 4 - 1} 12" preserveAspectRatio="none" role="img"
-    aria-label="Historique 90 jours de ${esc(c.name)}">${cells}</svg>`;
+
+  const parts = Object.entries(byState).map(
+    ([v, dates]) =>
+      `${STATE_LABEL[v as keyof typeof STATE_LABEL]} : ${dates.length} jour${dates.length > 1 ? "s" : ""} (${dates.join(", ")})`
+  );
+
+  const summary = parts.length
+    ? `Historique ${n} jour${n > 1 ? "s" : ""} de ${c.name} : ${parts.join(" ; ")}`
+    : `Historique ${n} jour${n > 1 ? "s" : ""} de ${c.name} : aucun incident`;
+
+  return `<svg class="strip" viewBox="0 0 ${hist.length * 4 - 1} 12" preserveAspectRatio="none" role="group" aria-label="${esc(summary)}">${cells}</svg>`;
 }
 
 /* ---------- incidents ---------- */
@@ -359,3 +427,22 @@ function renderMaintenanceBlock(title: string, list: Maintenance[]): string {
 }
 
 const sameDay = (m: Maintenance) => day(m.starts_at) === day(m.ends_at);
+
+/* ---------- stale banner ---------- */
+function renderOutdatedDataBanner(age: string): string {
+  return `
+    <section class="active" aria-label="Avertissement sur l'âge des données affichées">
+      <ol class="incident-list">
+        <li class="incident open sev-degraded">
+          <div class="incident-head">
+            <span class="title">Données de statut plus d'actualité</span>
+            <span class="pill pill-sev sev-minor">Avertissement</span>
+          </div>
+          <p class="incident-msg">
+            Le dernier relevé de données date a eu lieu ${esc(age)}. La mise à jour automatique a un problème.
+          </p>
+        </li>
+      </ol>
+    </section>
+  `
+}

@@ -67,19 +67,152 @@ const tip = document.createElement("div");
 tip.className = "strip-tip";
 tip.hidden = true;
 document.body.append(tip);
-root.addEventListener("pointerover", (e) => {
-  const cell = (e.target as Element).closest<SVGRectElement>("rect[data-tip]");
-  if (!cell) return;
+
+function showTip(cell: SVGRectElement) {
   const r = cell.getBoundingClientRect();
   tip.textContent = cell.dataset.tip ?? "";
   tip.hidden = false;
   const w = tip.offsetWidth;
   const x = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), window.innerWidth - w - 8);
   tip.style.transform = `translate(${Math.round(x)}px, ${Math.round(r.bottom + 6)}px)`;
+}
+
+function hideTip() {
+  tip.hidden = true;
+}
+
+root.addEventListener("pointerover", (e) => {
+  const cell = (e.target as Element).closest<SVGRectElement>("rect[data-tip]");
+  if (!cell) return;
+  showTip(cell);
 });
+
 root.addEventListener("pointerout", (e) => {
-  if ((e.target as Element).closest("rect[data-tip]")) tip.hidden = true;
+  if ((e.target as Element).closest("rect[data-tip]")) {
+    hideTip();
+  }
 });
+
+root.addEventListener("focusin", (e) => {
+  const cell = (e.target as Element).closest<SVGRectElement>("rect[data-tip]");
+  if (!cell) return;
+  showTip(cell);
+});
+
+root.addEventListener("focusout", (e) => {
+  if ((e.target as Element).closest("rect[data-tip]")) {
+    hideTip();
+  }
+});
+
+// A keyboard navigation for the 90-day history bars
+root.addEventListener("keydown", (e) => {
+  // get the element currently focused by user 
+  const current = document.activeElement as SVGRectElement | null;
+
+  if (!current || !current.matches("svg.strip rect")) {
+    return;
+  }
+
+  const strip = current.closest("svg.strip");
+  if (!strip) {
+    return;
+  }
+
+  // get all the rectangles in this row and find my position
+  const rects = Array.from(strip.querySelectorAll<SVGRectElement>("rect"));
+  const index = rects.indexOf(current);
+  let nextIndex = -1;
+
+  // calculate the next position based on which key i pressed
+  if (e.key === "ArrowLeft") {
+    nextIndex = Math.max(0, index - 1);
+  } else if (e.key === "ArrowRight") {
+    nextIndex = Math.min(rects.length - 1, index + 1);
+  } else if (e.key === "Home") {
+    nextIndex = 0;
+  } else if (e.key === "End") {
+    nextIndex = rects.length - 1;
+  } else {
+    return;
+  }
+
+  // arrête de faire scroller la page quand on utilise le clavier
+  e.preventDefault();
+
+  // move to the new rectangle
+  if (nextIndex !== -1 && nextIndex !== index) {
+    current.setAttribute("tabindex", "-1");
+    const nextRect = rects[nextIndex];
+    nextRect?.setAttribute("tabindex", "0");
+    nextRect?.focus();
+  }
+});
+
+const DEFAULT_LIGHT = "rgb(226, 171, 186)"; // default color
+let heartClicks = 0; // number of clicks on the heart
+let heartTimer: number; // timer for reseting the click count
+
+// check if a color was saved in localStorage
+const savedColor = localStorage.getItem("secretAccent");
+if (savedColor) {
+  // apply to the css variable
+  document.documentElement.style.setProperty("--secret-accent", savedColor);
+}
+
+// try to check the matching rady button
+const initialRadio = document.querySelector<HTMLInputElement>(
+  `input[name="couleur"][value="${savedColor || DEFAULT_LIGHT}"]`
+);
+if (initialRadio) initialRadio.checked = true;
+
+document.addEventListener("click", (e) => {
+  const target = e.target as Element;
+
+  // check if the user clicked on the heart 
+  if (target.closest('[data-action="secret-heart"]')) {
+    heartClicks++;
+    window.clearTimeout(heartTimer);
+
+    // open/close the menu after 3 clicks
+    if (heartClicks === 3) {
+      const menu = document.getElementById("secret-color-menu") as HTMLDialogElement | null;
+      if (menu) menu.open ? menu.close() : menu.showModal();
+      heartClicks = 0;
+    } else {
+      heartTimer = window.setTimeout(() => (heartClicks = 0), 800);
+    }
+  }
+
+  if (target.closest("#secret-color-close") || target.id === "secret-color-menu") {
+    const menu = document.getElementById("secret-color-menu") as HTMLDialogElement | null;
+    if (menu) menu.close();
+  }
+
+  // Réinitialisation : on supprime la variable pour revenir aux couleurs par défaut (ACCENT_LIGHT / ACCENT_DARK)
+  if (target.closest("#secret-color-reset")) {
+    localStorage.removeItem("secretAccent");
+    document.documentElement.style.removeProperty("--secret-accent");
+
+    const defaultRadio = document.querySelector<HTMLInputElement>(
+      `input[name="couleur"][value="${DEFAULT_LIGHT}"]`
+    );
+    if (defaultRadio) defaultRadio.checked = true;
+  }
+});
+
+document.addEventListener("change", (e) => {
+  const target = e.target as HTMLInputElement;
+  if (target.name === "couleur") {
+    localStorage.setItem("secretAccent", target.value);
+    document.documentElement.style.setProperty("--secret-accent", target.value);
+  }
+});
+
+const savedAccent = localStorage.getItem('secretAccent');
+if (savedAccent) {
+  document.documentElement.style.setProperty('--secret-accent', savedAccent);
+}
 
 // Without the relay the public API sends no CORS headers, so this fails
 // silently on GitHub Pages and the snapshot stays.

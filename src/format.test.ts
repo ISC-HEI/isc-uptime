@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { duration, snapshotStamp, span, visualState } from "./format";
+import { duration, snapshotStamp, span, outdatedData, visualState } from "./format";
 
 const NOW = "2026-11-26T18:02:00+01:00";
 
@@ -92,5 +92,19 @@ describe("snapshotStamp", () => {
 
   test("the snapshot is not today", () => {
     expect(snapshotStamp("2026-11-25T19:04:00+01:00", new Date(NOW))).toBe("le 25 nov. à 19:04")
+  });
+});
+
+describe("outdatedData", () => {
+  test("the age of the snapshot is more than 30 minutes, but the same day", () => {
+    expect(outdatedData("2026-11-26T08:04:00+01:00", new Date(NOW))).toBe("à 08:04");
+  });
+
+  test("the age of the snapshot is more than 30 minutes, but not the same day", () => {
+    expect(outdatedData("2026-11-25T08:04:00+01:00", new Date(NOW))).toBe("le 25 nov. à 08:04");
+  });
+
+  test("the age of the snapshot is less than 30 minutes", () => {
+    expect(outdatedData("2026-11-26T18:00:00+01:00", new Date(NOW))).toBeNull()
   });
 });
