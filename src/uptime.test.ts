@@ -5,7 +5,7 @@
 // behaviour in plain words, `expect(...)` compares a result with what we want.
 import { describe, expect, test } from "bun:test";
 import type { Component, Incident } from "./types";
-import { componentUptime, formatPct, pctTone } from "./uptime";
+import { componentUptime, formatPct, overallUptime, pctTone } from "./uptime";
 
 const DAY_MS = 86_400_000;
 const HOUR_MS = 3_600_000;
@@ -40,9 +40,16 @@ function incident(startHoursAgo: number, endHoursAgo: number | null, componentId
   };
 }
 
-describe("time", () => {
-  test("is null when no data", () => {
-    expect(componentUptime(component(0), [], NOW));
+describe("overallUptime", () => {
+  test("calculate average of percentage", () => {
+    const up1 = componentUptime(component(32), [incident(24, 10)], NOW);
+    const up2 = componentUptime(component(90), [], NOW);
+    const overall = overallUptime([up1, up2]);
+
+    expect(overall).not.toBeNull();
+    expect(overall?.days).toBe(90);
+    // ! est un opérateur quand on sait que ça ne va pas être null
+    expect(overall?.pct).toBeCloseTo((up1!.pct + up2!.pct) / 2, 2)
   });
 });
 
@@ -72,6 +79,48 @@ describe("componentUptime", () => {
   test("ignores the incidents of other components", () => {
     const u = componentUptime(component(10), [incident(48, 24, "another-service")], NOW);
     expect(u?.pct).toBe(100);
+  });
+
+  test("exclue le temps de l'incident commencé avant la période d'observation", () => {
+    const u = componentUptime(component(10), [incident(300, 120)], NOW);
+    expect(u?.pct).toBe(50); // Comme un incident à démarrer avant la fenêtre de données
+  });
+
+  // Ce test à d'abord échouer
+  test("ne compte pas deux fois les périodes d'incidents qui se chevauchent", () => {
+    // 100 * (1 - 36 / 240) = 100 * (1 - 0.15) = 85%
+    const u = componentUptime(component(10), [incident(48, 24), incident(36, 12)], NOW);
+    expect(u?.pct).toBe(85)
+  });
+
+  test("vérifie que le .sort est correctement effectué et que le résultat fonctionne également", () => {
+    // 100 * (1 - 36 / 240) = 100 * (1 - 0.15) = 85%
+    const u = componentUptime(component(10), [incident(36, 12), incident(48, 24)], NOW);
+    expect(u?.pct).toBe(85)
+  });
+
+  test("enchaîne 3 incidents dont des dépassements et un incdient en cours", () => {
+    // 100 * (1 - 48 / 240) = 100 * (1 - 0.20) = 80%
+    const u = componentUptime(component(10), [incident(48, 30), incident(36, 18), incident(24, null)], NOW);
+    expect(u?.pct).toBe(80);
+  });
+
+  test("calcule correctement des incidents qui se chevauchent et d'autres non", () => {
+    // 100 * (1 - 60 / 240) = 100 * (1 - 0.25) = 75%
+    const u = componentUptime(component(10), [incident(96, 72), incident(48, 24), incident(36, 12)], NOW);
+    expect(u?.pct).toBe(75);
+  });
+
+  test("ignore les chevauchements d'incidents avec d'autres composants", () => {
+    // 100 * (1 - 24 / 240) = 100 * (1 - 0.10) = 90%
+    const u = componentUptime(component(10), [incident(48, 24), incident(60, 12, "another-service")], NOW);
+    expect(u?.pct).toBe(90);
+  });
+
+  test("gère les incidents qui se chevauchent aux limites de la fenêtre d'observation", () => {
+    // 100 * (1 - 84 / 240) = 100 * (1 - 0.35) = 65%
+    const u = componentUptime(component(10), [incident(300, 200), incident(220, 180), incident(24, null)], NOW);
+    expect(u?.pct).toBeCloseTo(65, 6);
   });
 });
 

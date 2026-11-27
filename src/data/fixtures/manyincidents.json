@@ -631,7 +631,7 @@
             "postmortem": null
         },
         {
-            "id": "01a086b8-b9a5-7d17-94fb-29991e90f0f7",
+            "id": "01a086b8-b9a5-7d17-94fb-29991e90f0f8",
             "component_id": "4e119f90-9cab-49d7-a444-8cfa75fc8e82",
             "component_name": "ISC/Learn",
             "title": "ISC/Learn degraded",
@@ -687,13 +687,13 @@
             "postmortem": null
         },
         {
-            "id": "01a0736e-e2ba-7018-ba26-99f30983148a",
-            "component_id": "4e119f90-9cab-49d7-a444-8cfa75fc8e82",
+            "id": "01a0736e-e2ba-7018-ba26-99f30983148b",
+            "component_id": "c0269fd3-fdf1-4bb8-92f2-0abc66ad5e92",
             "component_name": "ISC hub",
             "title": "ISC hub degraded",
             "started_at": "2026-09-05T21:16:14Z",
             "ended_at": "2026-09-05T22:24:15Z",
-            "severity": "minor",
+            "severity": "critical",
             "status_phase": "resolved",
             "updates": [
                 {

@@ -30,13 +30,25 @@ export function componentUptime(c: Component, incidents: Incident[], generated: 
   const end = generated.getTime();
   const start = end - days * DAY_MS;
 
-  let down = 0;
+  const intervals = [];
   for (const i of incidents) {
     if (!(i.component_id === c.id || (!i.component_id && i.component_name === c.name))) continue;
     const s = Math.max(Date.parse(i.started_at), start);
     const e = Math.min(i.ended_at ? Date.parse(i.ended_at) : end, end);
-    if (e > s) down += e - s;
+    if (e > s) intervals.push({ s, e });
   }
+
+  intervals.sort((a, b) => a.s - b.s);
+
+  let down = 0;
+  let lastEnd = 0;
+  for (const { s, e } of intervals) {
+    if (e > lastEnd) {
+      down += e - Math.max(s, lastEnd);
+      lastEnd = e;
+    }
+  }
+
   const pct = Math.max(0, Math.min(100, 100 * (1 - down / (end - start))));
   return { pct, days };
 }
