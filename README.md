@@ -26,6 +26,7 @@ small CORS relay. The page is in French.
 - **Incidents and maintenance** — active, recent and planned, with Swiss time and durations
 - **Light and dark theme** — two-way toggle persisted under `isc.theme`, the same key as the ISC Hub
 - **Themes** — fourteen palettes (the five orientations, high contrast, e-paper and a few improbable ones), each in light and dark; three clicks on the footer heart open the menu
+- **E-paper panel** — a fixed 1872 × 1404 rendering of the content alone, for a TRMNL X, as `trmnl.html` and `trmnl.png`
 - **Snapshot first, live after** — the page paints the snapshot embedded at build time, then polls the relay every 30 s
 
 ## Quick Start
@@ -118,6 +119,29 @@ The app is not Vue, so it cannot import the components of `@isc-hei/design`. It 
 package's tokens and the CSS of the ported components in `src/isc-design.css` (ISCHeader, Footer,
 `.isc-fab`, `[data-tooltip]`) and renders the same markup from `src/render.ts`.
 When the package changes upstream, re-vendor those blocks by hand.
+
+### E-paper panel
+
+`bun run build` also writes `dist/trmnl.html`: the content alone (no header controls, no
+footer, no script), pinned to 1872 × 1404 px for a [TRMNL X](https://trmnl.com/) in landscape,
+in black, white and greys. A state is told by a shape first (icon, height of the bar), a grey
+second. The file is self-contained, fonts and logo included, because a screenshot service may
+load the HTML without its sibling files. The deploy workflow then screenshots it into
+`dist/trmnl.png` with the runner's Chrome.
+
+- **https://status.isc-vs.ch/trmnl.png** — for an image plugin; exact size, no rendering on the TRMNL side
+- **https://status.isc-vs.ch/trmnl.html** — for a screenshot plugin
+
+Both are rebuilt with every snapshot, so they are 10 to 20 minutes old at most.
+
+```bash
+bun run trmnl                                # dist/trmnl.html from src/data/status.json
+bun scripts/trmnl.ts out.html --demo=outage  # any fixture of src/data/fixtures/
+CHROME=/path/to/chrome scripts/trmnl-png.sh  # dist/trmnl.png
+```
+
+The layout is in `src/trmnl.ts`. Every length is in `rem` and 1 rem is 1/117 of the width,
+so another panel only needs another size in `TRMNL_X`.
 
 ### Themes
 

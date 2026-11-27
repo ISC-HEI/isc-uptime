@@ -9,7 +9,8 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && bun scripts/trmnl.ts",
+    "trmnl": "bun scripts/trmnl.ts",
     "preview": "vite preview",
     "snapshot": "bun scripts/snapshot.ts",
     "typecheck": "tsc --noEmit",
